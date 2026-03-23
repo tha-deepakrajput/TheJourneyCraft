@@ -1,7 +1,8 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import connectDB from "./database";
-import User from "@/models/User";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
@@ -16,8 +17,11 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Missing credentials");
         }
-        await connectDB();
-        const user = await User.findOne({ email: credentials.email });
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, credentials.email));
+
         if (!user || !user.password) {
           throw new Error("Invalid credentials");
         }
@@ -26,7 +30,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid credentials");
         }
         return {
-          id: user._id.toString(),
+          id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
@@ -35,10 +39,15 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      if (trigger === "update" && session && session.name) {
+        token.name = session.name;
+      }
+      
       if (user) {
         token.role = (user as any).role;
         token.id = user.id;
+        token.name = user.name;
       }
       return token;
     },
@@ -46,6 +55,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).role = token.role;
         (session.user as any).id = token.id;
+        session.user.name = token.name as string;
       }
       return session;
     },

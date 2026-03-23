@@ -1,10 +1,13 @@
-import { Check, X, Eye } from "lucide-react";
+import { db } from "@/db";
+import { submissions } from "@/db/schema";
+import { desc } from "drizzle-orm";
+import SubmissionRow from "./SubmissionRow";
 
-export default function SubmissionsPage() {
-  const submissions = [
-    { id: 1, name: "Alice", title: "Climbing Everest", status: "Pending", date: "2 hrs ago" },
-    { id: 2, name: "Bob", title: "My first marathon", status: "Pending", date: "5 hrs ago" },
-  ];
+export default async function SubmissionsPage() {
+  const allSubmissions = await db
+    .select()
+    .from(submissions)
+    .orderBy(desc(submissions.createdAt));
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -20,34 +23,33 @@ export default function SubmissionsPage() {
               <tr>
                 <th className="px-6 py-4 font-medium">Author</th>
                 <th className="px-6 py-4 font-medium">Story Title</th>
+                <th className="px-6 py-4 font-medium">Category</th>
                 <th className="px-6 py-4 font-medium">Submitted</th>
                 <th className="px-6 py-4 font-medium">Status</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50 bg-card">
-              {submissions.map((sub) => (
-                <tr key={sub.id} className="hover:bg-muted/20 transition-colors">
-                  <td className="px-6 py-4 font-medium">{sub.name}</td>
-                  <td className="px-6 py-4">{sub.title}</td>
-                  <td className="px-6 py-4 text-muted-foreground">{sub.date}</td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
-                      {sub.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button className="p-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors" title="Review">
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 bg-green-500/10 text-green-500 hover:bg-green-500/20 rounded-lg transition-colors" title="Approve">
-                      <Check className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors" title="Reject">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </td>
+              {allSubmissions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">No submissions found.</td>
                 </tr>
+              ) : allSubmissions.map((sub) => (
+                <SubmissionRow 
+                  key={sub.id} 
+                  sub={{
+                    _id: sub.id,
+                    name: sub.name,
+                    email: sub.email,
+                    title: sub.title,
+                    category: sub.category || "General",
+                    story: sub.story,
+                    status: sub.status || "Pending",
+                    createdAt: sub.createdAt.toISOString(),
+                    images: sub.images || [],
+                    video: sub.video || undefined
+                  }} 
+                />
               ))}
             </tbody>
           </table>

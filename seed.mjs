@@ -1,38 +1,61 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import { config } from "dotenv";
+config({ path: ".env.local" });
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/journeycraft";
+import pg from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { pgTable, uuid, varchar, text, pgEnum } from "drizzle-orm/pg-core";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
-const UserSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    role: { type: String, enum: ["Creator", "Explorer"], default: "Explorer" },
-    password: { type: String },
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+const db = drizzle(pool);
+
+// Define the users table schema inline (must match src/db/schema.ts)
+const userRoleEnum = pgEnum("user_role", ["Creator", "Explorer"]);
+const users = pgTable("users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  image: text("image").default(""),
+  role: userRoleEnum("role").default("Explorer"),
+  password: text("password"),
 });
 
-const User = mongoose.models.User || mongoose.model("User", UserSchema);
-
 async function seed() {
-    try {
-        await mongoose.connect(MONGODB_URI);
-        const hashedPassword = await bcrypt.hash("admin123", 10);
-        
-        await User.findOneAndUpdate(
-            { email: "admin@journeycraft.com" },
-            {
-                name: "Admin",
-                role: "Creator",
-                password: hashedPassword
-            },
-            { upsert: true }
-        );
-        
-        console.log("Admin user seeded successfully with email: admin@journeycraft.com");
-    } catch(e) {
-        console.error(e);
-    } finally {
-        process.exit(0);
+  try {
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    // Check if admin already exists
+    const [existingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, "admin@journeycraft.com"));
+
+    if (existingUser) {
+      await db
+        .update(users)
+        .set({ name: "Admin", role: "Creator", password: hashedPassword })
+        .where(eq(users.email, "admin@journeycraft.com"));
+      console.log("Admin user updated successfully.");
+    } else {
+      await db.insert(users).values({
+        name: "Admin",
+        email: "admin@journeycraft.com",
+        role: "Creator",
+        password: hashedPassword,
+      });
+      console.log("Admin user created successfully.");
     }
+
+    console.log("Seed complete! Email: admin@journeycraft.com / Password: admin123");
+  } catch (e) {
+    console.error("Seed error:", e);
+  } finally {
+    await pool.end();
+    process.exit(0);
+  }
 }
 
 seed();

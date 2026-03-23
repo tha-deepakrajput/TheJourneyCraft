@@ -1,68 +1,118 @@
-import { Users, BookOpen, Film, Send, Inbox } from "lucide-react";
+import { db } from "@/db";
+import { submissions, journeys } from "@/db/schema";
+import { eq, gte, desc, count } from "drizzle-orm";
+import DashboardClient from "./DashboardClient";
 
-export default function DashboardOverview() {
-  const stats = [
-    { label: "Total Stories", value: "24", icon: BookOpen, trend: "+3 this month" },
-    { label: "Timeline Events", value: "15", icon: Film, trend: "+1 this week" },
-    { label: "Pending Submissions", value: "5", icon: Send, trend: "Requires review" },
-    { label: "Total Visitors", value: "12.4k", icon: Users, trend: "+12% vs last month" },
+export const dynamic = 'force-dynamic';
+
+export default async function DashboardOverview() {
+  // Fetch Stats in parallel
+  const [
+    [{ value: totalStories }],
+    [{ value: timelineEvents }],
+    [{ value: pendingSubmissions }],
+    [{ value: approvedSubmissions }],
+    [{ value: rejectedSubmissions }],
+  ] = await Promise.all([
+    db.select({ value: count() }).from(submissions).where(eq(submissions.status, "Approved")),
+    db.select({ value: count() }).from(journeys),
+    db.select({ value: count() }).from(submissions).where(eq(submissions.status, "Pending")),
+    db.select({ value: count() }).from(submissions).where(eq(submissions.status, "Approved")),
+    db.select({ value: count() }).from(submissions).where(eq(submissions.status, "Rejected")),
+  ]);
+
+  const submissionsBreakdown = {
+    pending: pendingSubmissions,
+    approved: approvedSubmissions,
+    rejected: rejectedSubmissions,
+  };
+
+  // Monthly Engagement for the current year
+  const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+  
+  const [submissionsThisYear, journeysThisYear] = await Promise.all([
+    db.select({ createdAt: submissions.createdAt, status: submissions.status })
+      .from(submissions)
+      .where(gte(submissions.createdAt, startOfYear)),
+    db.select({ createdAt: journeys.createdAt })
+      .from(journeys)
+      .where(gte(journeys.createdAt, startOfYear)),
+  ]);
+  
+  // Group by month
+  const monthlyEngagementInitial = [
+    { name: "Jan", submissions: 0, events: 0 }, { name: "Feb", submissions: 0, events: 0 }, { name: "Mar", submissions: 0, events: 0 },
+    { name: "Apr", submissions: 0, events: 0 }, { name: "May", submissions: 0, events: 0 }, { name: "Jun", submissions: 0, events: 0 },
+    { name: "Jul", submissions: 0, events: 0 }, { name: "Aug", submissions: 0, events: 0 }, { name: "Sep", submissions: 0, events: 0 },
+    { name: "Oct", submissions: 0, events: 0 }, { name: "Nov", submissions: 0, events: 0 }, { name: "Dec", submissions: 0, events: 0 },
   ];
 
+  submissionsThisYear.forEach(sub => {
+    const monthIndex = new Date(sub.createdAt).getMonth();
+    monthlyEngagementInitial[monthIndex].submissions += 1;
+  });
+
+  journeysThisYear.forEach(j => {
+    const monthIndex = new Date(j.createdAt).getMonth();
+    monthlyEngagementInitial[monthIndex].events += 1;
+  });
+
+  // Fetch Latest Activity
+  const latestSubmissions = await db
+    .select({
+      id: submissions.id,
+      title: submissions.title,
+      status: submissions.status,
+      createdAt: submissions.createdAt,
+      email: submissions.email,
+    })
+    .from(submissions)
+    .orderBy(desc(submissions.createdAt))
+    .limit(5);
+
+  const latestJourneys = await db
+    .select({
+      id: journeys.id,
+      title: journeys.title,
+      createdAt: journeys.createdAt,
+      category: journeys.category,
+    })
+    .from(journeys)
+    .orderBy(desc(journeys.createdAt))
+    .limit(5);
+  
+  const combinedActivities = [
+    ...latestSubmissions.map(sub => ({
+      id: sub.id,
+      type: "submission" as const,
+      title: sub.title,
+      subtitle: `From ${sub.email}`,
+      status: sub.status || "Pending",
+      date: new Date(sub.createdAt)
+    })),
+    ...latestJourneys.map(j => ({
+      id: j.id,
+      type: "journey" as const,
+      title: j.title,
+      subtitle: j.category || "Timeline Event",
+      status: "Published",
+      date: new Date(j.createdAt)
+    }))
+  ];
+
+  combinedActivities.sort((a, b) => b.date.getTime() - a.date.getTime());
+  const finalLatestActivity = combinedActivities.slice(0, 5).map(act => ({
+    ...act,
+    date: act.date.toISOString()
+  }));
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Dashboard Overview</h1>
-        <p className="text-muted-foreground">Welcome back, Creator. Here's what's happening with your journey.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="bg-card p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <Icon className="w-6 h-6 text-muted-foreground" />
-                <span className="text-xs font-semibold px-2 py-1 bg-muted rounded-full text-muted-foreground">{stat.trend}</span>
-              </div>
-              <div>
-                <h3 className="text-3xl font-bold">{stat.value}</h3>
-                <p className="text-sm text-muted-foreground font-medium mt-1">{stat.label}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-card p-6 rounded-2xl border border-border shadow-sm min-h-[400px] flex flex-col">
-          <h3 className="font-semibold mb-4 text-lg border-b border-border/50 pb-3">Monthly Engagement</h3>
-          <div className="flex-1 flex items-center justify-center bg-muted/20 rounded-xl border border-dashed border-border/60">
-            <span className="text-muted-foreground font-medium">Chart visualization will appear here</span>
-          </div>
-        </div>
-        <div className="bg-card p-6 rounded-2xl border border-border shadow-sm min-h-[400px] flex flex-col">
-          <h3 className="font-semibold mb-4 text-lg border-b border-border/50 pb-3">Latest Activity</h3>
-          <div className="flex-1 flex flex-col gap-4 mt-4">
-             {/* Stub items */}
-             {[1, 2, 3].map((i) => (
-               <div key={i} className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/50">
-                 <div className="flex items-center gap-4">
-                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                     <Inbox className="w-5 h-5 text-primary" />
-                   </div>
-                   <div>
-                     <p className="font-medium text-sm">New Submission received</p>
-                     <p className="text-xs text-muted-foreground">From a community member</p>
-                   </div>
-                 </div>
-                 <span className="text-xs text-muted-foreground">2 hrs ago</span>
-               </div>
-             ))}
-          </div>
-        </div>
-      </div>
-    </div>
+    <DashboardClient 
+      totalStories={totalStories} 
+      timelineEvents={timelineEvents} 
+      submissionsBreakdown={submissionsBreakdown}
+      monthlyEngagement={monthlyEngagementInitial}
+      latestActivity={finalLatestActivity}
+    />
   );
 }
-
-// Ensure lucide icon imports are correct. I missed importing Inbox. Let me fix inside the file.
