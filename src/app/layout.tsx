@@ -13,6 +13,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "JourneyCraft",
   description: "A digital museum of life journeys.",
+  manifest: "/manifest.json",
+  themeColor: "#18181b",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "JourneyCraft",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
