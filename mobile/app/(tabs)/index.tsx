@@ -7,12 +7,10 @@ import {
   Dimensions,
   useColorScheme,
 } from "react-native";
-import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
-import { apiFetch } from "@/lib/api";
-import { useRouter } from "expo-router";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { Link } from "expo-router";
+import { Compass, ArrowRight } from "lucide-react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import AuroraBackground from "@/components/AuroraBackground";
 
 const { width } = Dimensions.get("window");
