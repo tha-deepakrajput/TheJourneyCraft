@@ -145,11 +145,11 @@ export default function TimelineCard({ year, title, description, image, video, l
                animate={{ opacity: 1, scale: 1, y: 0 }}
                exit={{ opacity: 0, scale: 0.95, y: 20 }}
                transition={{ type: "spring", damping: 25, stiffness: 300 }}
-               className="relative w-full max-w-5xl max-h-[90vh] overflow-hidden bg-card border border-border/50 rounded-3xl shadow-2xl z-10 flex flex-col md:flex-row shadow-orange-500/10"
+               className="relative w-full max-w-5xl max-h-[90dvh] md:max-h-[90vh] overflow-hidden bg-card border border-border/50 rounded-t-3xl md:rounded-3xl shadow-2xl z-10 flex flex-col md:flex-row shadow-orange-500/10 mt-auto md:mt-0"
              >
                <button 
                  onClick={() => setIsModalOpen(false)} 
-                 className="absolute top-4 right-4 z-50 p-2.5 bg-background/80 backdrop-blur-md rounded-full text-foreground hover:bg-secondary hover:text-red-500 transition-colors shadow-sm"
+                 className="absolute top-4 right-4 z-50 p-2.5 bg-background/80 backdrop-blur-md rounded-full text-foreground hover:bg-secondary hover:text-red-500 transition-colors shadow-sm md:top-4 md:right-4"
                >
                  <X className="w-5 h-5" />
                </button>
@@ -167,7 +167,7 @@ export default function TimelineCard({ year, title, description, image, video, l
                )}
                
                {/* Modal Text Side */}
-               <div className={`p-8 md:p-12 overflow-y-auto ${image || video ? 'md:w-1/2' : 'w-full'}`}>
+               <div className={`p-8 md:p-12 overflow-y-auto pb-safe ${image || video ? 'md:w-1/2' : 'w-full'}`}>
                  <div className="flex flex-wrap items-center gap-3 mb-6">
                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 text-orange-600 border border-orange-500/20">
                       <Calendar className="w-4 h-4" />

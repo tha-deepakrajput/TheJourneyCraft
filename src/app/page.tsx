@@ -45,7 +45,7 @@ export default async function Home() {
       <Hero />
       
       {/* Journey Highlights Section */}
-      <section className="relative py-32 px-4 sm:px-6 lg:px-8 w-full z-10 overflow-hidden">
+      <section className="relative py-12 md:py-32 px-4 sm:px-6 lg:px-8 w-full z-10 overflow-hidden">
         {/* Aurora / Northern Lights Background */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           {/* Aurora blob 1 — warm orange */}
@@ -203,7 +203,7 @@ export default async function Home() {
       </section>
 
       {/* Latest Stories Section */}
-      <section className="relative py-32 px-4 sm:px-6 lg:px-8 w-full z-10 overflow-hidden">
+      <section className="relative py-12 md:py-32 px-4 sm:px-6 lg:px-8 w-full z-10 overflow-hidden">
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
         {/* Animated Dot Grid + Glow Background */}

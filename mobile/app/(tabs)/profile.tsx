@@ -12,6 +12,7 @@ import { Colors } from "@/lib/theme";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import AuroraBackground from "@/components/AuroraBackground";
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? "dark";
@@ -33,7 +34,8 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <AuroraBackground>
+      <View style={styles.container}>
       <Animated.View entering={FadeInDown.duration(600)} style={styles.content}>
         {/* Avatar */}
         <View
@@ -128,6 +130,7 @@ export default function ProfileScreen() {
         )}
       </Animated.View>
     </View>
+    </AuroraBackground>
   );
 }
 

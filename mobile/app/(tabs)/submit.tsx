@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { submitStory } from "@/lib/api";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import AuroraBackground from "@/components/AuroraBackground";
 
 const CATEGORIES = ["Personal Growth", "Career", "Travel", "Overcoming Challenges"];
 
@@ -63,16 +64,17 @@ export default function SubmitScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView
-        style={{ flex: 1, backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingBottom: 60 }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <AuroraBackground>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 100, paddingTop: 40 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* Header */}
         <Animated.View entering={FadeInDown.duration(800)} style={styles.header}>
           <View
@@ -266,6 +268,7 @@ export default function SubmitScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </AuroraBackground>
   );
 }
 

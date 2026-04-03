@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileNav from "@/components/MobileNav";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -23,6 +24,13 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
 };
 
 export default function RootLayout({
@@ -35,10 +43,11 @@ export default function RootLayout({
       <body className={`${inter.variable} antialiased min-h-screen flex flex-col`} suppressHydrationWarning>
         <Providers>
           <Navbar />
-          <main className="flex-grow pt-16">
+          <main className="flex-grow pt-16 pb-20 md:pb-0">
             {children}
           </main>
           <Footer />
+          <MobileNav />
         </Providers>
       </body>
     </html>

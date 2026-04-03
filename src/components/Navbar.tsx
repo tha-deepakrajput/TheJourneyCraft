@@ -140,9 +140,9 @@ export default function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
         className={cn(
-          "pointer-events-auto w-full max-w-5xl rounded-2xl md:rounded-full backdrop-blur-2xl border transition-all duration-500 shadow-xl",
+          "pointer-events-auto w-full max-w-5xl rounded-2xl md:rounded-full backdrop-blur-2xl border transition-all duration-500 shadow-xl pt-safe md:pt-0",
           themeClasses.nav,
-          scrolled ? "py-2 px-4 shadow-2xl" : "py-3 px-6"
+          scrolled ? "py-2 px-4 shadow-2xl scale-[0.98] -translate-y-1" : "py-3 px-6"
         )}
       >
         <div className="flex justify-between items-center h-12">
@@ -184,25 +184,25 @@ export default function Navbar() {
           </div>
 
           {/* Right: Actions */}
-          <div className="hidden md:flex items-center space-x-3 z-10">
+          <div className="flex items-center space-x-1 md:space-x-3 z-10">
             {session ? (
-              <Link href="/dashboard" className="text-sm font-medium hover:text-foreground/80 transition-colors px-2">
+              <Link href="/dashboard" className="hidden md:block text-sm font-medium hover:text-foreground/80 transition-colors px-2">
                 Dashboard
               </Link>
             ) : (
-              <Link href="/login" className="text-sm font-medium hover:text-foreground/80 transition-colors px-2">
+              <Link href="/login" className="hidden md:block text-sm font-medium hover:text-foreground/80 transition-colors px-2">
                 Sign In
               </Link>
             )}
             
             <Link 
               href="/submit-journey" 
-              className={cn("text-sm font-semibold px-5 py-2 rounded-full transition-all duration-300 transform hover:scale-105", themeClasses.btn)}
+              className={cn("hidden md:block text-sm font-semibold px-5 py-2 rounded-full transition-all duration-300 transform hover:scale-105", themeClasses.btn)}
             >
               Share Story
             </Link>
             
-            <div className="w-[1px] h-5 bg-border mx-1" />
+            <div className="hidden md:block w-[1px] h-5 bg-border mx-1" />
             
             <button
               onClick={toggleTheme}
@@ -235,24 +235,9 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center z-10">
-            <button 
-              onClick={() => setIsMenuOpen(!isMenuOpen)} 
-              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-foreground"
-            >
-              <AnimatePresence mode="wait">
-                {isMenuOpen ? (
-                  <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-                    <X className="h-6 w-6" />
-                  </motion.div>
-                ) : (
-                  <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
-                    <Menu className="h-6 w-6" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </button>
+          {/* Mobile Menu Button - Hidden since we have Bottom Nav */}
+          <div className="md:hidden flex items-center z-10 opacity-0 pointer-events-none w-10 h-10">
+            {/* Keeping it for layout symmetry but hiding it */}
           </div>
         </div>
       </motion.nav>

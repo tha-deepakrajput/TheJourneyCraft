@@ -15,6 +15,7 @@ import { Colors } from "@/lib/theme";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import AuroraBackground from "@/components/AuroraBackground";
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? "dark";
@@ -44,10 +45,11 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    <AuroraBackground>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
       <View style={styles.container}>
         {/* Close button */}
         <Pressable
@@ -149,6 +151,7 @@ export default function LoginScreen() {
         </Animated.View>
       </View>
     </KeyboardAvoidingView>
+    </AuroraBackground>
   );
 }
 

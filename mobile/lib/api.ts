@@ -1,13 +1,13 @@
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-// Use your machine's local IP for physical device testing.
-// Use localhost for simulators/emulators.
+// IMPORTANT: For physical device testing, replace 'localhost' with your computer's local IP (e.g., 192.168.1.10)
+// For Android Emulator, use 10.0.2.2
 const API_BASE_URL = __DEV__
   ? Platform.OS === "android"
-    ? "http://10.0.2.2:3000" // Android emulator loopback
+    ? "http://10.0.2.2:3000" 
     : "http://localhost:3000"
-  : "https://your-production-url.com"; // Replace with your deployed URL
+  : "https://the-journey-craft.vercel.app"; // Update this with your actual production URL
 
 export async function getToken(): Promise<string | null> {
   try {

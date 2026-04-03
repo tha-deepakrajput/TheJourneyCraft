@@ -26,7 +26,8 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden w-full pt-20">
+    <section className="relative min-h-screen md:min-h-screen flex items-center justify-center overflow-hidden w-full pt-safe md:pt-20">
+      <div className="absolute inset-0 min-h-[100dvh] md:min-h-screen z-0">
       {/* Dynamic Animated Background */}
       <div className="absolute inset-0 overflow-hidden z-0">
         <div className="absolute inset-0 bg-background z-10" />
@@ -60,6 +61,7 @@ export default function Hero() {
         {/* subtle grid overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.05)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_100%)] z-20" />
       </div>
+    </div>
       
       <div className="relative z-30 text-center px-4 max-w-5xl mx-auto flex flex-col items-center mt-[-8vh]">
         <motion.div
@@ -75,7 +77,7 @@ export default function Hero() {
 
           <motion.h1 
             variants={itemVariants}
-            className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tighter mb-8 leading-[1.05]"
+            className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tighter mb-8 leading-[1.05]"
           >
             Memories in <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-800 to-neutral-400 dark:from-white dark:to-neutral-500 drop-shadow-sm">
@@ -85,7 +87,7 @@ export default function Hero() {
           
           <motion.p 
             variants={itemVariants}
-            className="text-lg md:text-2xl text-muted-foreground/90 mb-12 max-w-2xl font-light"
+            className="text-base md:text-2xl text-muted-foreground/90 mb-12 max-w-2xl font-light px-4"
           >
             Chronicle your adventures with breathtaking elegance. Explore a curated timeline of journeys that shaped the world.
           </motion.p>

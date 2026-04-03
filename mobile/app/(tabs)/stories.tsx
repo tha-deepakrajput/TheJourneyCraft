@@ -9,13 +9,16 @@ import {
   ActivityIndicator,
   Pressable,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, submitStory } from "@/lib/api";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import AuroraBackground from "@/components/AuroraBackground";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -80,118 +83,126 @@ export default function StoriesScreen() {
   }
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 40 }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.blue} />
-      }
-    >
-      {/* Header */}
-      <Animated.View entering={FadeInDown.duration(800)} style={styles.header}>
-        <View
-          style={[
-            styles.iconContainer,
-            { backgroundColor: `${colors.blue}15`, borderColor: `${colors.blue}30` },
-          ]}
+    <AuroraBackground>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 100, paddingTop: 40 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.blue} />
+          }
         >
-          <Ionicons name="book" size={28} color={colors.blue} />
-        </View>
-        <Text style={[styles.title, { color: colors.foreground }]}>
-          Stories &{"\n"}
-          <Text style={{ color: colors.blue }}>Thoughts.</Text>
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-          Deep dives into the experiences, lessons, and philosophies that drive
-          the journey.
-        </Text>
-      </Animated.View>
-
-      {/* Stories Grid */}
-      <View style={styles.grid}>
-        {stories.length > 0 ? (
-          stories.map((story, index) => (
-            <Animated.View
-              key={story.id}
-              entering={FadeInUp.delay(index * 80).duration(500)}
-            >
-              <Pressable
-                onPress={() => router.push(`/story/${story.id}` as any)}
-                style={({ pressed }) => [
-                  styles.storyCard,
-                  {
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                    opacity: pressed ? 0.9 : 1,
-                    transform: [{ scale: pressed ? 0.98 : 1 }],
-                  },
-                ]}
-              >
-                {story.coverImage ? (
-                  <Image
-                    source={{ uri: story.coverImage }}
-                    style={styles.storyImage}
-                    contentFit="cover"
-                    transition={300}
-                  />
-                ) : (
-                  <View
-                    style={[
-                      styles.storyImagePlaceholder,
-                      { backgroundColor: `${colors.blue}10` },
-                    ]}
-                  >
-                    <Ionicons name="book-outline" size={32} color={`${colors.blue}50`} />
-                  </View>
-                )}
-
-                <View style={styles.storyContent}>
-                  <View style={styles.tagRow}>
-                    <View
-                      style={[styles.tag, { backgroundColor: `${colors.blue}20` }]}
-                    >
-                      <Text style={[styles.tagText, { color: colors.blue }]}>
-                        {story.tag}
-                      </Text>
-                    </View>
-                    <Text style={[styles.readingTime, { color: colors.mutedForeground }]}>
-                      {story.readingTime}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[styles.storyTitle, { color: colors.foreground }]}
-                    numberOfLines={2}
-                  >
-                    {story.title}
-                  </Text>
-                  <Text
-                    style={[styles.storyDescription, { color: colors.mutedForeground }]}
-                    numberOfLines={2}
-                  >
-                    {story.description}
-                  </Text>
-                </View>
-              </Pressable>
-            </Animated.View>
-          ))
-        ) : (
-          <View style={styles.emptyState}>
+          {/* Header */}
+          <Animated.View entering={FadeInDown.duration(800)} style={styles.header}>
             <View
               style={[
-                styles.emptyIcon,
-                { backgroundColor: `${colors.muted}80`, borderColor: colors.border },
+                styles.iconContainer,
+                { backgroundColor: `${colors.blue}15`, borderColor: `${colors.blue}30` },
               ]}
             >
-              <Ionicons name="book-outline" size={32} color={colors.mutedForeground} />
+              <Ionicons name="book" size={28} color={colors.blue} />
             </View>
-            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              No stories shared yet. Be the first to share your journey!
+            <Text style={[styles.title, { color: colors.foreground }]}>
+              Stories &{"\n"}
+              <Text style={{ color: colors.blue }}>Thoughts.</Text>
             </Text>
+            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+              Deep dives into the experiences, lessons, and philosophies that drive
+              the journey.
+            </Text>
+          </Animated.View>
+
+          {/* Stories Grid */}
+          <View style={styles.grid}>
+            {stories.length > 0 ? (
+              stories.map((story, index) => (
+                <Animated.View
+                  key={story.id}
+                  entering={FadeInUp.delay(index * 80).duration(500)}
+                >
+                  <Pressable
+                    onPress={() => router.push(`/story/${story.id}` as any)}
+                    style={({ pressed }) => [
+                      styles.storyCard,
+                      {
+                        backgroundColor: colors.card + "90",
+                        borderColor: colors.border + "40",
+                        opacity: pressed ? 0.9 : 1,
+                        transform: [{ scale: pressed ? 0.98 : 1 }],
+                      },
+                    ]}
+                  >
+                    {story.coverImage ? (
+                      <Image
+                        source={{ uri: story.coverImage }}
+                        style={styles.storyImage}
+                        contentFit="cover"
+                        transition={300}
+                      />
+                    ) : (
+                      <View
+                        style={[
+                          styles.storyImagePlaceholder,
+                          { backgroundColor: `${colors.blue}10` },
+                        ]}
+                      >
+                        <Ionicons name="book-outline" size={32} color={`${colors.blue}50`} />
+                      </View>
+                    )}
+
+                    <View style={styles.storyContent}>
+                      <View style={styles.tagRow}>
+                        <View
+                          style={[styles.tag, { backgroundColor: `${colors.blue}20` }]}
+                        >
+                          <Text style={[styles.tagText, { color: colors.blue }]}>
+                            {story.tag}
+                          </Text>
+                        </View>
+                        <Text style={[styles.readingTime, { color: colors.mutedForeground }]}>
+                          {story.readingTime}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[styles.storyTitle, { color: colors.foreground }]}
+                        numberOfLines={2}
+                      >
+                        {story.title}
+                      </Text>
+                      <Text
+                        style={[styles.storyDescription, { color: colors.mutedForeground }]}
+                        numberOfLines={2}
+                      >
+                        {story.description}
+                      </Text>
+                    </View>
+                  </Pressable>
+                </Animated.View>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <View
+                  style={[
+                    styles.emptyIcon,
+                    { backgroundColor: `${colors.muted}80`, borderColor: colors.border },
+                  ]}
+                >
+                  <Ionicons name="book-outline" size={32} color={colors.mutedForeground} />
+                </View>
+                <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+                  No stories shared yet. Be the first to share your journey!
+                </Text>
+              </View>
+            )}
           </View>
-        )}
-      </View>
-    </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </AuroraBackground>
   );
 }
 
