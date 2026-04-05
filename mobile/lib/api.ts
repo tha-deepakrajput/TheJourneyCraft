@@ -1,10 +1,13 @@
 import { storage } from "./storage";
 import { Platform } from "react-native";
 
-// Use EXPO_PUBLIC_API_URL for variable environments (e.g. preview, production)
-// Default to the local IP for Expo Go development
+// Configuration for the backend API
+// During build time, EXPO_PUBLIC_API_URL is inlined.
+// Fallback to local IP if no variable is provided (even in standalone builds for testing).
 const DEV_API_URL = "http://10.101.223.250:3000";
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEV_API_URL;
+
+console.log("[API] Connecting to:", API_BASE_URL); // Log for debugging
 
 export async function getToken(): Promise<string | null> {
   return storage.getItem("auth_token");
