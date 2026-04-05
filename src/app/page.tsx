@@ -20,7 +20,7 @@ export default async function Home() {
   const latestJourneys = await db
     .select()
     .from(journeys)
-    .orderBy(desc(journeys.date))
+    .orderBy(desc(journeys.createdAt))
     .limit(3);
 
   // Fetch latest 3 approved stories

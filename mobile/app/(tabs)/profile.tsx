@@ -6,12 +6,12 @@ import {
   StyleSheet,
   Pressable,
   Alert,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "expo-router";
-import Animated, { FadeInDown } from "react-native-reanimated";
 import AuroraBackground from "@/components/AuroraBackground";
 
 export default function ProfileScreen() {
@@ -20,7 +20,23 @@ export default function ProfileScreen() {
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
 
+  const showComingSoon = (feature: string) => {
+    if (Platform.OS === "web") {
+      alert(`${feature} feature coming soon!`);
+    } else {
+      Alert.alert("Coming Soon", `${feature} feature will be available in a future update.`);
+    }
+  };
+
   const handleLogout = () => {
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm("Are you sure you want to sign out?");
+      if (confirmed) {
+        logout();
+      }
+      return;
+    }
+
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
       { text: "Cancel", style: "cancel" },
       {
@@ -36,7 +52,7 @@ export default function ProfileScreen() {
   return (
     <AuroraBackground>
       <View style={styles.container}>
-      <Animated.View entering={FadeInDown.duration(600)} style={styles.content}>
+      <View style={styles.content}>
         {/* Avatar */}
         <View
           style={[
@@ -72,19 +88,19 @@ export default function ProfileScreen() {
                 icon="notifications-outline"
                 label="Notifications"
                 colors={colors}
-                onPress={() => {}}
+                onPress={() => router.push("/notifications")}
               />
               <MenuItem
                 icon="settings-outline"
                 label="Settings"
                 colors={colors}
-                onPress={() => {}}
+                onPress={() => router.push("/settings")}
               />
               <MenuItem
                 icon="shield-checkmark-outline"
                 label="Privacy"
                 colors={colors}
-                onPress={() => {}}
+                onPress={() => router.push("/privacy")}
               />
             </View>
 
@@ -128,7 +144,7 @@ export default function ProfileScreen() {
             </Pressable>
           </>
         )}
-      </Animated.View>
+      </View>
     </View>
     </AuroraBackground>
   );

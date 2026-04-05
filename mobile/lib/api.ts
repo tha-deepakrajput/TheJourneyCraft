@@ -1,28 +1,21 @@
-import * as SecureStore from "expo-secure-store";
+import { storage } from "./storage";
 import { Platform } from "react-native";
 
-// IMPORTANT: For physical device testing, replace 'localhost' with your computer's local IP (e.g., 192.168.1.10)
-// For Android Emulator, use 10.0.2.2
-const API_BASE_URL = __DEV__
-  ? Platform.OS === "android"
-    ? "http://10.0.2.2:3000" 
-    : "http://localhost:3000"
-  : "https://the-journey-craft.vercel.app"; // Update this with your actual production URL
+// Use EXPO_PUBLIC_API_URL for variable environments (e.g. preview, production)
+// Default to the local IP for Expo Go development
+const DEV_API_URL = "http://10.101.223.250:3000";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEV_API_URL;
 
 export async function getToken(): Promise<string | null> {
-  try {
-    return await SecureStore.getItemAsync("auth_token");
-  } catch {
-    return null;
-  }
+  return storage.getItem("auth_token");
 }
 
 export async function setToken(token: string): Promise<void> {
-  await SecureStore.setItemAsync("auth_token", token);
+  await storage.setItem("auth_token", token);
 }
 
 export async function removeToken(): Promise<void> {
-  await SecureStore.deleteItemAsync("auth_token");
+  await storage.removeItem("auth_token");
 }
 
 interface FetchOptions extends RequestInit {
@@ -87,8 +80,8 @@ export async function fetchJourneys() {
 }
 
 export async function fetchStories() {
-  const data = await apiFetch<any[]>("/api/submissions/approved");
-  return data;
+  const data = await apiFetch<{ success: boolean; stories: any[] }>("/api/submissions/approved");
+  return data.stories;
 }
 
 export async function submitStory(storyData: {
@@ -103,5 +96,36 @@ export async function submitStory(storyData: {
   return apiFetch("/api/submissions", {
     method: "POST",
     body: JSON.stringify(storyData),
+  });
+}
+
+export async function fetchNotifications() {
+  const data = await apiFetch<{ notifications: any[] }>("/api/notifications", {
+    authenticated: true,
+  });
+  return data.notifications;
+}
+
+export async function markNotificationAsRead(id?: string) {
+  return apiFetch("/api/notifications", {
+    method: "PATCH",
+    authenticated: true,
+    body: JSON.stringify({ id }),
+  });
+}
+
+export async function fetchUserProfile() {
+  const data = await apiFetch<{ user: { name: string; email: string; role: string; image?: string } }>(
+    "/api/user/profile",
+    { authenticated: true }
+  );
+  return data.user;
+}
+
+export async function updateUserProfile(profileData: { name: string; image?: string }) {
+  return apiFetch("/api/user/profile", {
+    method: "PUT",
+    authenticated: true,
+    body: JSON.stringify(profileData),
   });
 }

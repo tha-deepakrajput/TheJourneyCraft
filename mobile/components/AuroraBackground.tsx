@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, Dimensions, useColorScheme } from "react-native";
+import { View, StyleSheet, Dimensions, useColorScheme, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
@@ -18,28 +18,47 @@ export default function AuroraBackground({ children }: { children?: React.ReactN
   const colors = Colors[colorScheme];
 
   // Animation values for blobs
-  const blob1Pos = useSharedValue({ x: 0, y: 0 });
-  const blob2Pos = useSharedValue({ x: 0, y: 0 });
-  const blob3Pos = useSharedValue({ x: 0, y: 0 });
+  const blob1X = useSharedValue(0);
+  const blob1Y = useSharedValue(0);
+  const blob2X = useSharedValue(0);
+  const blob2Y = useSharedValue(0);
 
   useEffect(() => {
     // Blob 1 Animation
-    blob1Pos.value = withRepeat(
+    blob1X.value = withRepeat(
       withSequence(
-        withTiming({ x: 50, y: 30 }, { duration: 10000, easing: Easing.inOut(Easing.sin) }),
-        withTiming({ x: -30, y: 50 }, { duration: 12000, easing: Easing.inOut(Easing.sin) }),
-        withTiming({ x: 0, y: 0 }, { duration: 10000, easing: Easing.inOut(Easing.sin) })
+        withTiming(50, { duration: 10000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-30, { duration: 12000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 10000, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      false
+    );
+    blob1Y.value = withRepeat(
+      withSequence(
+        withTiming(30, { duration: 10000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(50, { duration: 12000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 10000, easing: Easing.inOut(Easing.sin) })
       ),
       -1,
       false
     );
 
     // Blob 2 Animation
-    blob2Pos.value = withRepeat(
+    blob2X.value = withRepeat(
       withSequence(
-        withTiming({ x: -60, y: -40 }, { duration: 15000, easing: Easing.inOut(Easing.sin) }),
-        withTiming({ x: 40, y: -60 }, { duration: 13000, easing: Easing.inOut(Easing.sin) }),
-        withTiming({ x: 0, y: 0 }, { duration: 15000, easing: Easing.inOut(Easing.sin) })
+        withTiming(-60, { duration: 15000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(40, { duration: 13000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 15000, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      false
+    );
+    blob2Y.value = withRepeat(
+      withSequence(
+        withTiming(-40, { duration: 15000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-60, { duration: 13000, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 15000, easing: Easing.inOut(Easing.sin) })
       ),
       -1,
       false
@@ -47,29 +66,31 @@ export default function AuroraBackground({ children }: { children?: React.ReactN
   }, []);
 
   const animatedBlob1 = useAnimatedStyle(() => ({
-    transform: [{ translateX: blob1Pos.value.x }, { translateY: blob1Pos.value.y }],
+    transform: [{ translateX: blob1X.value }, { translateY: blob1Y.value }],
   }));
 
   const animatedBlob2 = useAnimatedStyle(() => ({
-    transform: [{ translateX: blob2Pos.value.x }, { translateY: blob2Pos.value.y }],
+    transform: [{ translateX: blob2X.value }, { translateY: blob2Y.value }],
   }));
+
+  const BlobContainer = Platform.OS === "web" ? View : Animated.View;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Aurora Blobs */}
-      <Animated.View style={[styles.blob, styles.blob1, animatedBlob1]}>
+      <BlobContainer style={[styles.blob, styles.blob1, Platform.OS === "web" ? {} : animatedBlob1]}>
         <LinearGradient
           colors={[colors.orange + "80", colors.orange + "00"]}
           style={styles.gradient}
         />
-      </Animated.View>
+      </BlobContainer>
 
-      <Animated.View style={[styles.blob, styles.blob2, animatedBlob2]}>
+      <BlobContainer style={[styles.blob, styles.blob2, Platform.OS === "web" ? {} : animatedBlob2]}>
         <LinearGradient
           colors={[colors.blue + "60", colors.blue + "00"]}
           style={styles.gradient}
         />
-      </Animated.View>
+      </BlobContainer>
 
       <View style={[styles.blob, styles.blob3]}>
         <LinearGradient

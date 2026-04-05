@@ -15,9 +15,8 @@ import {
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
-import { apiFetch, submitStory } from "@/lib/api";
+import { fetchStories } from "@/lib/api";
 import { useRouter } from "expo-router";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import AuroraBackground from "@/components/AuroraBackground";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -41,22 +40,8 @@ export default function StoriesScreen() {
 
   const loadStories = async () => {
     try {
-      // We'll use the submissions endpoint and filter on our end
-      // since the web app does direct DB queries for approved stories
-      const data = await apiFetch("/api/journeys");
-      // For now, show journeys as "stories" since the submissions API
-      // doesn't have a public GET for approved submissions yet.
-      // You can add /api/submissions/approved later.
-      setStories(
-        (data.journeys || []).map((j: any) => ({
-          id: j.id,
-          title: j.title,
-          description: j.description,
-          readingTime: `${Math.max(1, Math.ceil((j.description?.split(" ").length || 0) / 200))} min read`,
-          tag: j.category || "Story",
-          coverImage: j.image || undefined,
-        }))
-      );
+      const data = await fetchStories();
+      setStories(data || []);
     } catch (err) {
       console.error("Error loading stories:", err);
     } finally {
@@ -98,7 +83,7 @@ export default function StoriesScreen() {
           }
         >
           {/* Header */}
-          <Animated.View entering={FadeInDown.duration(800)} style={styles.header}>
+          <View style={styles.header}>
             <View
               style={[
                 styles.iconContainer,
@@ -115,15 +100,14 @@ export default function StoriesScreen() {
               Deep dives into the experiences, lessons, and philosophies that drive
               the journey.
             </Text>
-          </Animated.View>
+          </View>
 
           {/* Stories Grid */}
           <View style={styles.grid}>
             {stories.length > 0 ? (
               stories.map((story, index) => (
-                <Animated.View
+                <View
                   key={story.id}
-                  entering={FadeInUp.delay(index * 80).duration(500)}
                 >
                   <Pressable
                     onPress={() => router.push(`/story/${story.id}` as any)}
@@ -182,7 +166,7 @@ export default function StoriesScreen() {
                       </Text>
                     </View>
                   </Pressable>
-                </Animated.View>
+                </View>
               ))
             ) : (
               <View style={styles.emptyState}>

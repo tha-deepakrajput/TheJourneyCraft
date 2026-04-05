@@ -3,14 +3,16 @@ import { db } from "@/db";
 import { journeys } from "@/db/schema";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { asc } from "drizzle-orm";
+import { desc } from "drizzle-orm";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     const allJourneys = await db
       .select()
       .from(journeys)
-      .orderBy(asc(journeys.date));
+      .orderBy(desc(journeys.createdAt));
     return NextResponse.json({ success: true, journeys: allJourneys });
   } catch (error: any) {
     console.error("Error fetching journeys:", error);

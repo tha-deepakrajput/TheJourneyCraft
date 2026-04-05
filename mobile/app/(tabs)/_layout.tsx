@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { useColorScheme, Platform, View, TouchableOpacity, StyleSheet, Text } from "react-native";
+import { useColorScheme, Platform, View, Pressable, StyleSheet, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { BlurView } from "expo-blur";
@@ -54,13 +54,13 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           const isSubmit = route.name === "submit";
 
           return (
-            <TouchableOpacity
+            <Pressable
               key={route.key}
               onPress={onPress}
-              activeOpacity={0.7}
-              style={[
+              style={({ pressed }) => [
                 styles.tabItem,
-                isSubmit && styles.submitTabItem
+                isSubmit && styles.submitTabItem,
+                { opacity: pressed ? 0.7 : 1 }
               ]}
             >
               <View style={[
@@ -80,7 +80,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                   {label}
                 </Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </BlurView>
@@ -128,7 +128,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     borderRadius: 32,
-    overflow: "hidden",
     borderWidth: 1,
     justifyContent: "space-around",
     alignItems: "center",
@@ -141,7 +140,8 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   submitTabItem: {
-    marginTop: -30,
+    marginTop: -35,
+    height: 70,
   },
   submitIconBg: {
     width: 60,

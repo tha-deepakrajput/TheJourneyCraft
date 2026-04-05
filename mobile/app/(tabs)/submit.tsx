@@ -14,7 +14,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { submitStory } from "@/lib/api";
-import Animated, { FadeInDown } from "react-native-reanimated";
 import AuroraBackground from "@/components/AuroraBackground";
 
 const CATEGORIES = ["Personal Growth", "Career", "Travel", "Overcoming Challenges"];
@@ -76,7 +75,7 @@ export default function SubmitScreen() {
           keyboardShouldPersistTaps="handled"
         >
         {/* Header */}
-        <Animated.View entering={FadeInDown.duration(800)} style={styles.header}>
+        <View style={styles.header}>
           <View
             style={[
               styles.iconContainer,
@@ -92,7 +91,7 @@ export default function SubmitScreen() {
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
             Every journey matters. Submit your own milestone, story, or memory.
           </Text>
-        </Animated.View>
+        </View>
 
         {/* Form */}
         <View style={styles.form}>

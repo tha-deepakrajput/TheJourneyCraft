@@ -8,16 +8,13 @@ import {
   StyleSheet,
   ActivityIndicator,
   Dimensions,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { fetchJourneys } from "@/lib/api";
-import Animated, {
-  FadeInDown,
-  FadeInUp,
-} from "react-native-reanimated";
 import AuroraBackground from "@/components/AuroraBackground";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -80,7 +77,7 @@ export default function TimelineScreen() {
         }
       >
         {/* Header */}
-        <Animated.View entering={FadeInDown.duration(800)} style={styles.header}>
+        <View style={styles.header}>
           <View
             style={[
               styles.iconContainer,
@@ -97,7 +94,7 @@ export default function TimelineScreen() {
             Explore the milestones, challenges, and beautiful moments that shaped
             this incredible story across time.
           </Text>
-        </Animated.View>
+        </View>
 
         {/* Timeline */}
         <View style={styles.timelineContainer}>
@@ -113,9 +110,8 @@ export default function TimelineScreen() {
 
           {journeys.length > 0 ? (
             journeys.map((journey, index) => (
-              <Animated.View
+              <View
                 key={journey.id}
-                entering={FadeInUp.delay(index * 100).duration(600)}
                 style={[
                   styles.timelineCard,
                   {
@@ -169,7 +165,7 @@ export default function TimelineScreen() {
                     </View>
                   ) : null}
                 </View>
-              </Animated.View>
+              </View>
             ))
           ) : (
             <View style={styles.emptyState}>

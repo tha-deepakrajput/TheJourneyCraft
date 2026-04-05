@@ -1,0 +1,49 @@
+import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
+
+/**
+ * A cross-platform storage utility that uses SecureStore on native
+ * and localStorage on the web to avoid 'getValueWithKeyAsync' errors.
+ */
+export const storage = {
+  async setItem(key: string, value: string): Promise<void> {
+    if (Platform.OS === "web") {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {
+        console.error("localStorage.setItem error:", e);
+      }
+    } else {
+      await SecureStore.setItemAsync(key, value);
+    }
+  },
+
+  async getItem(key: string): Promise<string | null> {
+    if (Platform.OS === "web") {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        console.error("localStorage.getItem error:", e);
+        return null;
+      }
+    } else {
+      try {
+        return await SecureStore.getItemAsync(key);
+      } catch {
+        return null;
+      }
+    }
+  },
+
+  async removeItem(key: string): Promise<void> {
+    if (Platform.OS === "web") {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        console.error("localStorage.removeItem error:", e);
+      }
+    } else {
+      await SecureStore.deleteItemAsync(key);
+    }
+  },
+};

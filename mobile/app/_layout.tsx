@@ -35,6 +35,24 @@ export default function RootLayout() {
               animation: "slide_from_right",
             }}
           />
+          <Stack.Screen
+            name="notifications"
+            options={{
+              animation: "slide_from_right",
+            }}
+          />
+          <Stack.Screen
+            name="settings"
+            options={{
+              animation: "slide_from_right",
+            }}
+          />
+          <Stack.Screen
+            name="privacy"
+            options={{
+              animation: "slide_from_right",
+            }}
+          />
         </Stack>
       </AuthProvider>
     </GestureHandlerRootView>

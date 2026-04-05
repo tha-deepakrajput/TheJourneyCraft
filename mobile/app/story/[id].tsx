@@ -7,13 +7,13 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { apiFetch } from "@/lib/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Animated, { FadeInDown } from "react-native-reanimated";
 
 interface StoryData {
   id: string;
@@ -102,7 +102,7 @@ export default function StoryDetailScreen() {
           />
         )}
 
-        <Animated.View entering={FadeInDown.duration(600)} style={styles.content}>
+        <View style={styles.content}>
           {/* Tags */}
           <View style={styles.tagRow}>
             <View style={[styles.tag, { backgroundColor: `${colors.blue}20` }]}>
@@ -145,7 +145,7 @@ export default function StoryDetailScreen() {
           <Text style={[styles.storyContent, { color: colors.foreground }]}>
             {story.content}
           </Text>
-        </Animated.View>
+        </View>
       </ScrollView>
     </View>
   );

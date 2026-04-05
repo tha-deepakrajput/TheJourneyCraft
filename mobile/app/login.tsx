@@ -14,7 +14,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "expo-router";
-import Animated, { FadeInDown } from "react-native-reanimated";
 import AuroraBackground from "@/components/AuroraBackground";
 
 export default function LoginScreen() {
@@ -36,7 +35,11 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(email, password);
-      router.back();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch (err: any) {
       Alert.alert("Login Failed", err.message || "Invalid credentials.");
     } finally {
@@ -53,13 +56,13 @@ export default function LoginScreen() {
       <View style={styles.container}>
         {/* Close button */}
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
           style={[styles.closeButton, { backgroundColor: `${colors.muted}` }]}
         >
           <Ionicons name="close" size={22} color={colors.foreground} />
         </Pressable>
 
-        <Animated.View entering={FadeInDown.duration(600)} style={styles.content}>
+        <View style={styles.content}>
           {/* Icon */}
           <View
             style={[
@@ -148,7 +151,7 @@ export default function LoginScreen() {
               </Text>
             </Pressable>
           </View>
-        </Animated.View>
+        </View>
       </View>
     </KeyboardAvoidingView>
     </AuroraBackground>

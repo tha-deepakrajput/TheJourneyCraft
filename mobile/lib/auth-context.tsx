@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import * as SecureStore from "expo-secure-store";
+import { storage } from "./storage";
 import { login as apiLogin, removeToken } from "./api";
 
 interface User {
@@ -33,12 +33,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const storedUser = await SecureStore.getItemAsync("auth_user");
+        const storedUser = await storage.getItem("auth_user");
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         }
-      } catch {
-        // No stored user
+      } catch (e) {
+        console.warn("Storage error on web session restoration:", e);
       } finally {
         setIsLoading(false);
       }
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const data = await apiLogin(email, password);
     if (data.success && data.user) {
       setUser(data.user);
-      await SecureStore.setItemAsync("auth_user", JSON.stringify(data.user));
+      await storage.setItem("auth_user", JSON.stringify(data.user));
     } else {
       throw new Error("Login failed");
     }
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setUser(null);
     await removeToken();
-    await SecureStore.deleteItemAsync("auth_user");
+    await storage.removeItem("auth_user");
   };
 
   return (
