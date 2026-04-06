@@ -3,9 +3,9 @@ import { Platform } from "react-native";
 
 // Configuration for the backend API
 // During build time, EXPO_PUBLIC_API_URL is inlined.
-// Fallback to local IP if no variable is provided (even in standalone builds for testing).
-const DEV_API_URL = "http://10.101.223.250:3000";
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEV_API_URL;
+// Production URL is used as fallback so standalone APK builds always work.
+const PRODUCTION_URL = "https://the-journey-craft.vercel.app";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || PRODUCTION_URL;
 
 console.log("[API] Connecting to:", API_BASE_URL); // Log for debugging
 

@@ -43,6 +43,8 @@ jobs:
           packager: npm
 
       - name: Expo Prebuild
+        env:
+          EXPO_PUBLIC_API_URL: https://the-journey-craft.vercel.app
         run: |
           cd mobile
           npx expo prebuild --platform android --no-install
