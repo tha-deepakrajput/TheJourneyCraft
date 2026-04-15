@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, Dimensions, useColorScheme, Platform } from "react-native";
+import { View, StyleSheet, Dimensions, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
@@ -10,11 +10,12 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { Colors } from "@/lib/theme";
+import { useTheme } from "@/lib/theme-context";
 
 const { width, height } = Dimensions.get("window");
 
 export default function AuroraBackground({ children }: { children?: React.ReactNode }) {
-  const colorScheme = useColorScheme() ?? "dark";
+  const { colorScheme } = useTheme();
   const colors = Colors[colorScheme];
 
   // Animation values for blobs

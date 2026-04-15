@@ -1,8 +1,8 @@
 import React from "react";
 import { View, StyleSheet, ViewStyle, Platform } from "react-native";
 import { BlurView } from "expo-blur";
-import { useColorScheme } from "react-native";
 import { Colors } from "@/lib/theme";
+import { useTheme } from "@/lib/theme-context";
 
 interface GlassViewProps {
   children?: React.ReactNode;
@@ -11,7 +11,7 @@ interface GlassViewProps {
 }
 
 export default function GlassView({ children, style, intensity = 40 }: GlassViewProps) {
-  const colorScheme = useColorScheme() ?? "dark";
+  const { colorScheme } = useTheme();
   const colors = Colors[colorScheme];
 
   return (

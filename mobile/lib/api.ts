@@ -39,6 +39,9 @@ export async function apiFetch<T = any>(
     const token = await getToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
+    } else {
+      console.warn(`[API] No auth token found for authenticated request to ${endpoint}`);
+      throw new Error("Not authenticated — please log in again");
     }
   }
 
@@ -49,6 +52,7 @@ export async function apiFetch<T = any>(
 
   if (!res.ok) {
     const errorBody = await res.json().catch(() => ({}));
+    console.error(`[API] ${endpoint} failed with ${res.status}:`, errorBody.error);
     throw new Error(errorBody.error || `Request failed with status ${res.status}`);
   }
 
@@ -61,7 +65,7 @@ export async function login(email: string, password: string) {
   const data = await apiFetch<{
     success: boolean;
     token: string;
-    user: { id: string; name: string; email: string; role: string };
+    user: { id: string; name: string; email: string; role: string; image?: string | null };
   }>("/api/auth/mobile-login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
@@ -98,7 +102,15 @@ export async function submitStory(storyData: {
 }) {
   return apiFetch("/api/submissions", {
     method: "POST",
-    body: JSON.stringify(storyData),
+    body: JSON.stringify({
+      name: storyData.name,
+      email: storyData.email,
+      title: storyData.title,
+      story: storyData.story,
+      category: storyData.category,
+      images: storyData.images || [],
+      video: storyData.video || "",
+    }),
   });
 }
 

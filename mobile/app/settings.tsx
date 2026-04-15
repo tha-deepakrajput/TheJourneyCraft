@@ -6,7 +6,6 @@ import {
   Pressable,
   TextInput,
   ActivityIndicator,
-  useColorScheme,
   Alert,
   Platform,
   ScrollView,
@@ -16,16 +15,24 @@ import { useRouter } from "expo-router";
 import { Colors } from "@/lib/theme";
 import { fetchUserProfile, updateUserProfile } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useTheme } from "@/lib/theme-context";
 import AuroraBackground from "@/components/AuroraBackground";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
-  const colorScheme = useColorScheme() ?? "dark";
+  const insets = useSafeAreaInsets();
+  const { colorScheme, theme, setTheme } = useTheme();
   const colors = Colors[colorScheme];
   const router = useRouter();
-  const { user: authUser } = useAuth();
+  const { user: authUser, refreshProfile } = useAuth();
   
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [newImageBase64, setNewImageBase64] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -33,16 +40,52 @@ export default function SettingsScreen() {
     const loadProfile = async () => {
       try {
         const profile = await fetchUserProfile();
-        setName(profile.name);
-        setEmail(profile.email);
+        setName(profile.name ?? "");
+        setEmail(profile.email ?? "");
+        setProfileImage(profile.image ?? null);
       } catch (error) {
         console.error("Failed to load profile:", error);
+        // Fallback to auth context data
+        if (authUser) {
+          setName(authUser.name ?? "");
+          setEmail(authUser.email ?? "");
+          setProfileImage(authUser.image ?? null);
+        }
       } finally {
         setLoading(false);
       }
     };
     loadProfile();
   }, []);
+
+  const pickProfileImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Denied", "We need access to your photos to change your profile image.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      setProfileImage(asset.uri); // Show preview immediately
+
+      if (asset.base64) {
+        const ext = asset.uri.split('.').pop()?.toLowerCase() || 'jpeg';
+        const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+        setNewImageBase64(`data:${mime};base64,${asset.base64}`);
+      } else {
+        Alert.alert("Error", "Failed to process the image. Please try again.");
+      }
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -52,7 +95,18 @@ export default function SettingsScreen() {
 
     setSaving(true);
     try {
-      await updateUserProfile({ name });
+      const updateData: { name: string; image?: string } = { name: name.trim() };
+      if (newImageBase64) {
+        updateData.image = newImageBase64;
+      }
+
+      await updateUserProfile(updateData);
+      
+      // Refresh the global auth state so header/tab bar reflect changes
+      await refreshProfile();
+      
+      setNewImageBase64(null); // Clear pending image
+
       if (Platform.OS === "web") {
         alert("Profile updated successfully!");
       } else {
@@ -60,16 +114,25 @@ export default function SettingsScreen() {
       }
     } catch (error) {
       console.error("Failed to update profile:", error);
-      Alert.alert("Error", "Failed to update profile");
+      Alert.alert("Error", "Failed to update profile. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
+  const themeOptions: { id: "light" | "dark" | "system"; label: string; icon: any }[] = [
+    { id: "light", label: "Light", icon: "sunny-outline" },
+    { id: "dark", label: "Dark", icon: "moon-outline" },
+    { id: "system", label: "System", icon: "settings-outline" },
+  ];
+
+  const avatarUri = profileImage || 
+    (authUser ? `https://api.dicebear.com/7.x/notionists/png?seed=${encodeURIComponent(authUser.name || 'User')}&backgroundColor=transparent` : null);
+
   return (
     <AuroraBackground>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.foreground} />
           </Pressable>
@@ -85,6 +148,42 @@ export default function SettingsScreen() {
           <View style={styles.form}>
             <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>Profile Information</Text>
             
+            {/* Profile Image */}
+            <View style={styles.imageSection}>
+              <View style={[styles.avatarContainer, { borderColor: colors.orange + "60" }]}>
+                {avatarUri ? (
+                  <Image
+                    source={{ uri: avatarUri }}
+                    style={styles.avatarImage}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <Ionicons name="person-outline" size={40} color={colors.mutedForeground} />
+                )}
+              </View>
+              <Pressable
+                onPress={pickProfileImage}
+                style={({ pressed }) => [
+                  styles.changeImageButton,
+                  { 
+                    backgroundColor: colors.orange + "15",
+                    borderColor: colors.orange + "40",
+                    opacity: pressed ? 0.7 : 1,
+                  }
+                ]}
+              >
+                <Ionicons name="camera-outline" size={18} color={colors.orange} />
+                <Text style={[styles.changeImageText, { color: colors.orange }]}>
+                  Change Photo
+                </Text>
+              </Pressable>
+              {newImageBase64 && (
+                <Text style={[styles.pendingText, { color: colors.emerald }]}>
+                  New photo selected — tap Save to apply
+                </Text>
+              )}
+            </View>
+
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.foreground }]}>Full Name</Text>
               <TextInput
@@ -116,14 +215,37 @@ export default function SettingsScreen() {
 
             <View style={styles.spacer} />
 
-            <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>App Preferences</Text>
+            <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>App Appearance</Text>
             
-            <View style={[styles.preferenceRow, { borderBottomColor: colors.border }]}>
-              <View style={styles.prefInfo}>
-                <Ionicons name="moon-outline" size={20} color={colors.foreground} />
-                <Text style={[styles.prefLabel, { color: colors.foreground }]}>Dark Mode</Text>
-              </View>
-              <Text style={[styles.statusText, { color: colors.orange }]}>System Default</Text>
+            <View style={styles.themeContainer}>
+              {themeOptions.map((option) => {
+                const isActive = theme === option.id;
+                return (
+                  <Pressable
+                    key={option.id}
+                    onPress={() => setTheme(option.id)}
+                    style={[
+                      styles.themeOption,
+                      { 
+                        backgroundColor: isActive ? colors.orange : `${colors.muted}30`,
+                        borderColor: isActive ? colors.orange : colors.border
+                      }
+                    ]}
+                  >
+                    <Ionicons 
+                      name={option.icon} 
+                      size={20} 
+                      color={isActive ? "#fff" : colors.foreground} 
+                    />
+                    <Text style={[
+                      styles.themeLabel,
+                      { color: isActive ? "#fff" : colors.foreground }
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
 
             <View style={[styles.preferenceRow, { borderBottomColor: colors.border }]}>
@@ -194,6 +316,43 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginTop: 24,
   },
+  imageSection: {
+    alignItems: "center",
+    marginBottom: 28,
+  },
+  avatarContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 3,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    marginBottom: 14,
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 48,
+  },
+  changeImageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    borderWidth: 1.5,
+  },
+  changeImageText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  pendingText: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: "600",
+  },
   inputGroup: {
     marginBottom: 20,
   },
@@ -213,6 +372,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 6,
     marginLeft: 4,
+  },
+  themeContainer: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 20,
+  },
+  themeOption: {
+    flex: 1,
+    height: 50,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1.5,
+  },
+  themeLabel: {
+    fontSize: 14,
+    fontWeight: "700",
   },
   preferenceRow: {
     flexDirection: "row",

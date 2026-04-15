@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   RefreshControl,
-  useColorScheme,
   StyleSheet,
   ActivityIndicator,
   Pressable,
@@ -17,7 +16,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { fetchStories } from "@/lib/api";
 import { useRouter } from "expo-router";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import AuroraBackground from "@/components/AuroraBackground";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -31,6 +33,7 @@ interface Story {
 }
 
 export default function StoriesScreen() {
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? "dark";
   const colors = Colors[colorScheme];
   const router = useRouter();
@@ -75,7 +78,7 @@ export default function StoriesScreen() {
       >
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 100, paddingTop: 40 }}
+          contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={
@@ -83,7 +86,7 @@ export default function StoriesScreen() {
           }
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { paddingTop: insets.top + 90 }]}>
             <View
               style={[
                 styles.iconContainer,

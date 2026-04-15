@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  image?: string | null;
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,11 +25,38 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   login: async () => {},
   logout: async () => {},
+  refreshProfile: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const refreshProfile = async () => {
+    if (!user) return;
+    try {
+      // Import fetchUserProfile inside or rely on the api module
+      const { fetchUserProfile } = require("./api");
+      const profileInfo = await fetchUserProfile();
+      if (profileInfo) {
+        const updatedUser = { ...user, ...profileInfo };
+        setUser(updatedUser);
+        await storage.setItem("auth_user", JSON.stringify(updatedUser));
+      }
+    } catch (e: any) {
+      console.warn("Failed to refresh profile on startup:", e);
+      // Only logout if the token is confirmed missing (not just a transient server error)
+      const errorMsg = e.message || "";
+      if (errorMsg.includes("Not authenticated") || errorMsg.includes("please log in")) {
+        // Token is definitely missing from storage — must re-login
+        setUser(null);
+        storage.removeItem("auth_user").catch(() => {});
+        removeToken().catch(() => {});
+      }
+      // For server 401s or network errors, keep the user logged in
+      // — the token may still be valid and the server might recover
+    }
+  };
 
   // Restore session on mount
   useEffect(() => {
@@ -44,6 +73,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })();
   }, []);
+
+  // Sync profile when user is loaded from storage
+  useEffect(() => {
+    if (user && !isLoading) {
+      refreshProfile();
+    }
+  }, [isLoading]);
 
   const login = async (email: string, password: string) => {
     const data = await apiLogin(email, password);
@@ -69,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         login,
         logout,
+        refreshProfile,
       }}
     >
       {children}

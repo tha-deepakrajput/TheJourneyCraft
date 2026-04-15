@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  useColorScheme,
   StyleSheet,
   ActivityIndicator,
   Pressable,
@@ -14,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { apiFetch } from "@/lib/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 interface StoryData {
   id: string;

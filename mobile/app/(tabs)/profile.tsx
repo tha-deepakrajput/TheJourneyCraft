@@ -2,7 +2,6 @@ import React from "react";
 import {
   View,
   Text,
-  useColorScheme,
   StyleSheet,
   Pressable,
   Alert,
@@ -12,11 +11,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "expo-router";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import AuroraBackground from "@/components/AuroraBackground";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { Image } from "expo-image";
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? "dark";
-  const colors = Colors[colorScheme];
+  const colors = Colors[colorScheme as "light" | "dark"];
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
 
@@ -52,7 +56,7 @@ export default function ProfileScreen() {
   return (
     <AuroraBackground>
       <View style={styles.container}>
-      <View style={styles.content}>
+      <View style={[styles.content, { paddingTop: insets.top + 100 }]}>
         {/* Avatar */}
         <View
           style={[
@@ -63,11 +67,19 @@ export default function ProfileScreen() {
             },
           ]}
         >
-          <Ionicons
-            name={isAuthenticated ? "person" : "person-outline"}
-            size={40}
-            color={isAuthenticated ? colors.purple : colors.mutedForeground}
-          />
+          {isAuthenticated && user ? (
+            <Image
+              source={{ uri: user.image || `https://api.dicebear.com/7.x/notionists/png?seed=${encodeURIComponent(user.name || 'User')}&backgroundColor=transparent` }}
+              style={{ width: '100%', height: '100%', borderRadius: 44 }}
+              contentFit="cover"
+            />
+          ) : (
+            <Ionicons
+              name="person-outline"
+              size={40}
+              color={colors.mutedForeground}
+            />
+          )}
         </View>
 
         {isAuthenticated && user ? (

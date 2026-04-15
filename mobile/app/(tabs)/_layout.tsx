@@ -1,34 +1,47 @@
 import { Tabs } from "expo-router";
-import { useColorScheme, Platform, View, Pressable, StyleSheet, Text } from "react-native";
+import { Platform, View, Pressable, StyleSheet, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Haptics from "expo-haptics";
+import Header from "@/components/Header";
+import { useTheme } from "@/lib/theme-context";
+
+import { useAuth } from "@/lib/auth-context";
+import { Image } from "expo-image";
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme() ?? "dark";
+  const { colorScheme } = useTheme();
   const colors = Colors[colorScheme];
+  const { user, isAuthenticated } = useAuth();
 
   return (
-    <View style={[styles.tabBarWrapper, { bottom: insets.bottom + 10 }]}>
+    <View style={[styles.tabBarWrapper, { bottom: insets.bottom + 12 }]}>
       <BlurView
-        intensity={80}
+        intensity={95}
         tint={colorScheme}
         style={[
           styles.tabBarContainer,
           { 
-            backgroundColor: colorScheme === "dark" ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.7)",
-            borderColor: colors.border + "40" 
+            backgroundColor: colorScheme === "dark" ? "rgba(24, 24, 27, 0.7)" : "rgba(255, 255, 255, 0.85)",
+            borderColor: colors.border + "80" 
           }
         ]}
       >
         {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
-          const label = options.tabBarLabel !== undefined ? options.tabBarLabel : options.title !== undefined ? options.title : route.name;
+          const label = options.tabBarLabel !== undefined 
+            ? options.tabBarLabel 
+            : options.title !== undefined 
+            ? options.title 
+            : route.name;
           const isFocused = state.index === index;
 
           const onPress = () => {
+            Haptics.selectionAsync();
             const event = navigation.emit({
               type: "tabPress",
               target: route.key,
@@ -44,7 +57,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             switch (route.name) {
               case "index": return isFocused ? "home" : "home-outline";
               case "timeline": return isFocused ? "compass" : "compass-outline";
-              case "submit": return isFocused ? "add-circle" : "add-circle-outline";
+              case "submit": return "add";
               case "stories": return isFocused ? "book" : "book-outline";
               case "profile": return isFocused ? "person" : "person-outline";
               default: return "help";
@@ -52,6 +65,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           };
 
           const isSubmit = route.name === "submit";
+          const isProfileTab = route.name === "profile";
+          const hasImage = isProfileTab && isAuthenticated && user;
 
           return (
             <Pressable
@@ -59,23 +74,52 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
               onPress={onPress}
               style={({ pressed }) => [
                 styles.tabItem,
-                isSubmit && styles.submitTabItem,
                 { opacity: pressed ? 0.7 : 1 }
               ]}
             >
-              <View style={[
-                  isSubmit && [styles.submitIconBg, { backgroundColor: colors.orange }]
-              ]}>
-                <Ionicons
-                  name={iconName() as any}
-                  size={isSubmit ? 32 : 24}
-                  color={isSubmit ? "#fff" : isFocused ? colors.orange : colors.mutedForeground}
-                />
-              </View>
+              {isSubmit ? (
+                <View style={[
+                  styles.submitIconBg, 
+                  { 
+                    backgroundColor: "#fff", 
+                    shadowColor: colorScheme === "dark" ? "#000" : colors.orange 
+                  }
+                ]}>
+                  <Ionicons name="add" size={32} color={colors.orange} />
+                </View>
+              ) : (
+                <View style={styles.tabIconContainer}>
+                  {hasImage && user ? (
+                    <Image
+                      source={{ uri: user.image || `https://api.dicebear.com/7.x/notionists/png?seed=${encodeURIComponent(user.name || 'User')}&backgroundColor=transparent` }}
+                      style={{ 
+                        width: 24, 
+                        height: 24, 
+                        borderRadius: 12,
+                        borderWidth: isFocused ? 2 : 1,
+                        borderColor: isFocused ? colors.orange : colors.border
+                      }}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <Ionicons
+                      name={iconName() as any}
+                      size={24}
+                      color={isFocused ? colors.orange : colors.mutedForeground}
+                    />
+                  )}
+                  {isFocused && (
+                    <View style={[styles.activeIndicator, { backgroundColor: colors.orange }]} />
+                  )}
+                </View>
+              )}
               {!isSubmit && (
                 <Text style={[
                     styles.tabLabel, 
-                    { color: isFocused ? colors.orange : colors.mutedForeground }
+                    { 
+                      color: isFocused ? colors.orange : colors.mutedForeground,
+                      fontWeight: isFocused ? "800" : "600"
+                    }
                 ]}>
                   {label}
                 </Text>
@@ -89,16 +133,22 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme() ?? "dark";
+  const { colorScheme } = useTheme();
   const colors = Colors[colorScheme];
 
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        header: () => <Header />,
         tabBarActiveTintColor: colors.orange,
         tabBarInactiveTintColor: colors.mutedForeground,
+        tabBarStyle: {
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+        }
       }}
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
@@ -113,25 +163,26 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBarWrapper: {
     position: "absolute",
-    left: 20,
-    right: 20,
-    height: 64,
-    borderRadius: 32,
+    left: 12,
+    right: 12,
+    height: 72,
+    borderRadius: 16,
     zIndex: 100,
-    elevation: 10,
+    elevation: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 20,
   },
   tabBarContainer: {
     flex: 1,
     flexDirection: "row",
-    borderRadius: 32,
-    borderWidth: 1,
+    borderRadius: 16,
+    borderWidth: 1.5,
     justifyContent: "space-around",
     alignItems: "center",
     paddingHorizontal: 8,
+    overflow: "hidden",
   },
   tabItem: {
     flex: 1,
@@ -139,29 +190,36 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     height: "100%",
   },
-  submitTabItem: {
-    marginTop: -35,
-    height: 70,
+  tabIconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 30,
+  },
+  activeIndicator: {
+    position: "absolute",
+    bottom: -6,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
   },
   submitIconBg: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 4,
-    borderColor: "rgba(0,0,0,0.05)",
-    shadowColor: "#f97316",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 8,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.05)",
   },
   tabLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    marginTop: 4,
+    fontSize: 9,
+    marginTop: 6,
     textTransform: "uppercase",
-    letterSpacing: -0.2,
+    letterSpacing: 0.5,
   },
 });
+

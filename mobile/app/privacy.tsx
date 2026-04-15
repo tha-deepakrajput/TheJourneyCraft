@@ -3,16 +3,19 @@ import {
   View,
   Text,
   StyleSheet,
-  Pressable,
   ScrollView,
-  useColorScheme,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors } from "@/lib/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import AuroraBackground from "@/components/AuroraBackground";
 
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 export default function PrivacyScreen() {
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? "dark";
   const colors = Colors[colorScheme];
   const router = useRouter();
@@ -20,7 +23,7 @@ export default function PrivacyScreen() {
   return (
     <AuroraBackground>
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.foreground} />
           </Pressable>

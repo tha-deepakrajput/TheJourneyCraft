@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Pressable,
   Dimensions,
-  useColorScheme,
   ScrollView,
   ActivityIndicator,
   Platform,
@@ -20,10 +19,13 @@ import {
   BookOpen 
 } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import AuroraBackground from "@/components/AuroraBackground";
 import { fetchJourneys, fetchStories } from "@/lib/api";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
@@ -52,6 +54,7 @@ const cardStyles = [
 ];
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? "dark";
   const colors = Colors[colorScheme];
   const router = useRouter();
@@ -89,7 +92,7 @@ export default function HomeScreen() {
       >
         {/* --- HERO SECTION --- */}
         <View 
-          style={styles.heroSection}
+          style={[styles.heroSection, { paddingTop: insets.top + 90 }]}
         >
           <View style={StyleSheet.flatten([styles.badge, { backgroundColor: colors.background + "80", borderColor: colors.border + "30" }])}>
             <View style={[styles.pulseDot, { backgroundColor: colors.orange }]} />

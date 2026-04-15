@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   RefreshControl,
-  useColorScheme,
   StyleSheet,
   ActivityIndicator,
   Dimensions,
@@ -15,7 +14,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
 import { fetchJourneys } from "@/lib/api";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import AuroraBackground from "@/components/AuroraBackground";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -31,6 +33,7 @@ interface Journey {
 }
 
 export default function TimelineScreen() {
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? "dark";
   const colors = Colors[colorScheme];
   const [journeys, setJourneys] = useState<Journey[]>([]);
@@ -70,14 +73,14 @@ export default function TimelineScreen() {
     <AuroraBackground>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 100, paddingTop: 40 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.orange} />
         }
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 90 }]}>
           <View
             style={[
               styles.iconContainer,

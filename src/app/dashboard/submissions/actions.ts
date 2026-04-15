@@ -8,7 +8,7 @@ export async function updateSubmissionStatus(id: string, status: "Approved" | "R
   try {
     await db
       .update(submissions)
-      .set({ status, updatedAt: new Date() })
+      .set({ status, updatedAt: new Date(), isRead: false })
       .where(eq(submissions.id, id));
     revalidatePath("/dashboard/submissions");
     return { success: true };
