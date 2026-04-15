@@ -98,6 +98,10 @@ export default function SettingsScreen() {
       const updateData: { name: string; image?: string } = { name: name.trim() };
       if (newImageBase64) {
         updateData.image = newImageBase64;
+      } else if (profileImage && !profileImage.startsWith('file://')) {
+        updateData.image = profileImage;
+      } else if (authUser?.image) {
+        updateData.image = authUser.image;
       }
 
       await updateUserProfile(updateData);
