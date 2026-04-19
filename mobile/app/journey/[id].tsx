@@ -11,7 +11,7 @@ import {
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
-import { fetchStories } from "@/lib/api";
+import { fetchJourneys } from "@/lib/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import AuroraBackground from "@/components/AuroraBackground";
@@ -20,47 +20,43 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
-interface StoryData {
+interface JourneyData {
   id: string;
   title: string;
-  content: string;
-  author: string;
+  description: string;
   date: string;
-  readingTime: string;
   category: string;
-  images: string[];
-  video: string | null;
+  image?: string;
+  video?: string;
 }
 
-export default function StoryDetailScreen() {
+export default function JourneyDetailScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? "dark";
   const colors = Colors[colorScheme];
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const [story, setStory] = useState<StoryData | null>(null);
+  const [journey, setJourney] = useState<JourneyData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const storiesData = await fetchStories();
-        const found = storiesData.find((s: any) => s.id === id);
+        const journeysData = await fetchJourneys();
+        const found = journeysData.find((j: any) => j.id === id);
         if (found) {
-          setStory({
+          setJourney({
             id: found.id,
             title: found.title,
-            content: found.description || found.story || "",
-            author: found.name || "JourneyCraft",
-            date: new Date(found.createdAt || Date.now()).toLocaleDateString(),
-            readingTime: found.readingTime || `${Math.max(1, Math.ceil(((found.description || found.story || "").split(" ").length) / 200))} min read`,
-            category: found.tag || found.category || "Story",
-            images: found.coverImage ? [found.coverImage] : (found.images || []),
-            video: found.video || null,
+            description: found.description,
+            date: found.date || new Date(found.createdAt).toLocaleDateString(),
+            category: found.category || "Journey",
+            image: found.image,
+            video: found.video,
           });
         }
       } catch (err) {
-        console.error("Error loading story:", err);
+        console.error("Error loading journey:", err);
       } finally {
         setLoading(false);
       }
@@ -77,11 +73,11 @@ export default function StoryDetailScreen() {
     );
   }
 
-  if (!story) {
+  if (!journey) {
     return (
       <AuroraBackground>
         <View style={styles.center}>
-          <Text style={{ color: colors.mutedForeground }}>Story not found.</Text>
+          <Text style={{ color: colors.mutedForeground }}>Journey not found.</Text>
           <Pressable onPress={() => router.back()} style={{ marginTop: 20 }}>
             <Text style={{ color: colors.primary }}>Go Back</Text>
           </Pressable>
@@ -106,9 +102,9 @@ export default function StoryDetailScreen() {
       >
         {/* Dynamic Hero Section */}
         <View style={styles.heroContainer}>
-          {story.images.length > 0 ? (
+          {journey.image ? (
             <Image
-              source={{ uri: story.images[0] }}
+              source={{ uri: journey.image }}
               style={styles.heroImage}
               contentFit="cover"
               transition={500}
@@ -117,30 +113,17 @@ export default function StoryDetailScreen() {
             <View style={[styles.heroImage, { backgroundColor: colors.muted }]} />
           )}
           <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.7)", colors.background]}
+            colors={["transparent", "rgba(0,0,0,0.6)", colors.background]}
             style={styles.heroGradient}
           />
           <View style={styles.heroContent}>
-            <View style={styles.tagRow}>
-              <View style={[styles.tag, { backgroundColor: colors.primary + "40" }]}>
-                <Text style={styles.tagText}>{story.category}</Text>
-              </View>
-              <View style={[styles.tag, { backgroundColor: "rgba(255,255,255,0.15)" }]}>
-                <Ionicons name="time-outline" size={12} color="#fff" style={{ marginRight: 4 }} />
-                <Text style={styles.tagText}>{story.readingTime}</Text>
-              </View>
+            <View style={[styles.tag, { backgroundColor: colors.primary + "40" }]}>
+              <Text style={styles.tagText}>{journey.category}</Text>
             </View>
-            
-            <Text style={styles.title}>{story.title}</Text>
-            
-            <View style={styles.authorRow}>
-              <View style={[styles.authorAvatar, { backgroundColor: colors.primary + "60" }]}>
-                <Text style={styles.authorInitials}>{(story.author?.[0] || 'A').toUpperCase()}</Text>
-              </View>
-              <View>
-                <Text style={styles.authorName}>{story.author}</Text>
-                <Text style={styles.date}>{story.date}</Text>
-              </View>
+            <Text style={styles.title}>{journey.title}</Text>
+            <View style={styles.metaRow}>
+              <Ionicons name="calendar-outline" size={16} color="rgba(255,255,255,0.8)" />
+              <Text style={styles.date}>{journey.date}</Text>
             </View>
           </View>
         </View>
@@ -148,8 +131,8 @@ export default function StoryDetailScreen() {
         {/* Content Section */}
         <View style={styles.contentContainer}>
           <View style={[styles.glassCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.storyContent, { color: colors.foreground }]}>
-              {story.content}
+            <Text style={[styles.description, { color: colors.foreground }]}>
+              {journey.description}
             </Text>
           </View>
         </View>
@@ -170,16 +153,16 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 100,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    borderColor: "rgba(255,255,255,0.1)",
   },
   heroContainer: {
     width: width,
-    height: height * 0.6,
+    height: height * 0.55,
     position: "relative",
   },
   heroImage: {
@@ -195,66 +178,42 @@ const styles = StyleSheet.create({
     left: 24,
     right: 24,
   },
-  tagRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 16,
-  },
   tag: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
+    alignSelf: "flex-start",
+    paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: "rgba(255,255,255,0.2)",
   },
   tagText: {
     color: "#FFF",
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "800",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     textTransform: "uppercase",
   },
   title: {
     color: "#FFF",
-    fontSize: 34,
+    fontSize: 38,
     fontWeight: "900",
     letterSpacing: -1,
-    lineHeight: 40,
-    marginBottom: 24,
-    textShadowColor: "rgba(0,0,0,0.5)",
+    lineHeight: 44,
+    marginBottom: 16,
+    textShadowColor: "rgba(0,0,0,0.3)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 10,
   },
-  authorRow: {
+  metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-  },
-  authorAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  authorInitials: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  authorName: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
+    gap: 8,
   },
   date: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 13,
-    marginTop: 2,
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 14,
+    fontWeight: "600",
   },
   contentContainer: {
     paddingHorizontal: 20,
@@ -268,12 +227,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
-    elevation: 8,
+    elevation: 5,
   },
-  storyContent: {
-    fontSize: 17,
-    lineHeight: 28,
+  description: {
+    fontSize: 18,
+    lineHeight: 30,
     fontWeight: "400",
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
 });

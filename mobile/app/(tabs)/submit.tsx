@@ -133,7 +133,7 @@ export default function SubmitScreen() {
         category: formData.category,
         images: imagesArray,
         video: formData.video || undefined,
-      });
+      }, isAuthenticated);
       setIsSubmitted(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       

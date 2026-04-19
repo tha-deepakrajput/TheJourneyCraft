@@ -36,6 +36,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // Block unverified users (except the seeded admin who may not have verified field)
+    if (user.verified === false && user.role !== "Creator") {
+      return NextResponse.json(
+        { success: false, error: "Please verify your email before signing in", requiresVerification: true },
+        { status: 403 }
+      );
+    }
+
     // Create a JWT token manually for mobile clients
     const secret = new TextEncoder().encode(
       process.env.NEXTAUTH_SECRET || "fallback_secret_for_dev"

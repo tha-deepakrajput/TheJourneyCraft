@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { storage } from "./storage";
-import { login as apiLogin, removeToken } from "./api";
+import { login as apiLogin, signup as apiSignup, verifyEmail as apiVerifyEmail, removeToken } from "./api";
 
 interface User {
   id: string;
@@ -14,7 +14,9 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<any>;
+  signup: (name: string, email: string, password: string) => Promise<any>;
+  verifyEmail: (email: string, code: string) => Promise<any>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -24,6 +26,8 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   isAuthenticated: false,
   login: async () => {},
+  signup: async () => {},
+  verifyEmail: async () => {},
   logout: async () => {},
   refreshProfile: async () => {},
 });
@@ -86,9 +90,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data.success && data.user) {
       setUser(data.user);
       await storage.setItem("auth_user", JSON.stringify(data.user));
-    } else {
-      throw new Error("Login failed");
     }
+    return data;
+  };
+
+  const signup = async (name: string, email: string, password: string) => {
+    const data = await apiSignup(name, email, password);
+    return data;
+  };
+
+  const verifyEmail = async (email: string, code: string) => {
+    const data = await apiVerifyEmail(email, code);
+    if (data.success && data.user) {
+      setUser(data.user);
+      await storage.setItem("auth_user", JSON.stringify(data.user));
+    }
+    return data;
   };
 
   const logout = async () => {
@@ -104,6 +121,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         login,
+        signup,
+        verifyEmail,
         logout,
         refreshProfile,
       }}

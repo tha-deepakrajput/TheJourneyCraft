@@ -52,6 +52,12 @@ function RootLayoutContent() {
             animation: "slide_from_right",
           }}
         />
+        <Stack.Screen
+          name="my-posts"
+          options={{
+            animation: "slide_from_right",
+          }}
+        />
       </Stack>
     </>
   );

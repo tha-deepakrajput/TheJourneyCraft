@@ -155,7 +155,7 @@ export default function TabLayout() {
       <Tabs.Screen name="timeline" options={{ title: "Journey" }} />
       <Tabs.Screen name="submit" options={{ title: "Share" }} />
       <Tabs.Screen name="stories" options={{ title: "Stories" }} />
-      <Tabs.Screen name="profile" options={{ title: "Me" }} />
+      <Tabs.Screen name="profile" options={{ title: "Me", headerShown: false }} />
     </Tabs>
   );
 }

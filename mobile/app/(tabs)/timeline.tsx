@@ -13,6 +13,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/lib/theme";
+import { BlurView } from "expo-blur";
 import { fetchJourneys } from "@/lib/api";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import AuroraBackground from "@/components/AuroraBackground";
@@ -113,60 +114,64 @@ export default function TimelineScreen() {
 
           {journeys.length > 0 ? (
             journeys.map((journey, index) => (
-              <View
-                key={journey.id}
-                style={[
-                  styles.timelineCard,
-                  {
-                    backgroundColor: colors.card + "90",
-                    borderColor: colors.border + "40",
-                  },
-                  index % 2 === 0 ? styles.cardLeft : styles.cardRight,
-                ]}
-              >
-                {/* Timeline dot */}
+              <View key={journey.id} style={styles.timelineRow}>
+                <View style={styles.timelineDotContainer}>
+                  <View
+                    style={[
+                      styles.timelineDot,
+                      {
+                        backgroundColor: colors.orange,
+                        borderColor: colors.background,
+                      },
+                    ]}
+                  />
+                </View>
+
                 <View
                   style={[
-                    styles.timelineDot,
+                    styles.timelineCard,
                     {
-                      backgroundColor: colors.orange,
-                      borderColor: colors.background,
-                      left: index % 2 === 0 ? -8 : undefined,
-                      right: index % 2 !== 0 ? -8 : undefined,
+                      borderColor: colors.border + "60",
                     },
                   ]}
-                />
+                >
+                  {journey.image ? (
+                    <Image
+                      source={{ uri: journey.image }}
+                      style={StyleSheet.absoluteFillObject}
+                      contentFit="cover"
+                      transition={300}
+                    />
+                  ) : (
+                    <View style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.orange + "20" }]} />
+                  )}
 
-                {journey.image ? (
-                  <Image
-                    source={{ uri: journey.image }}
-                    style={styles.cardImage}
-                    contentFit="cover"
-                    transition={300}
+                  <LinearGradient
+                    colors={["rgba(0,0,0,0.1)", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.85)"]}
+                    style={StyleSheet.absoluteFillObject}
                   />
-                ) : null}
 
-                <View style={styles.cardContent}>
-                  <Text style={[styles.cardDate, { color: colors.orange }]}>
-                    {journey.date}
-                  </Text>
-                  <Text style={[styles.cardTitle, { color: colors.foreground }]}>
-                    {journey.title}
-                  </Text>
-                  <Text
-                    style={[styles.cardDescription, { color: colors.mutedForeground }]}
-                    numberOfLines={3}
-                  >
-                    {journey.description}
-                  </Text>
-                  {journey.location ? (
-                    <View style={styles.locationRow}>
-                      <Ionicons name="location-outline" size={14} color={colors.mutedForeground} />
-                      <Text style={[styles.locationText, { color: colors.mutedForeground }]}>
-                        {journey.location}
+                  <View style={styles.cardContentWrapper}>
+                    <BlurView intensity={85} tint="dark" style={styles.cardGlassBox}>
+                      <Text style={[styles.cardDate, { color: colors.orange }]}>
+                        {journey.date}
                       </Text>
-                    </View>
-                  ) : null}
+                      <Text style={[styles.cardTitle, { color: "#FFF" }]} numberOfLines={2}>
+                        {journey.title}
+                      </Text>
+                      <Text style={[styles.cardDescription, { color: "rgba(255,255,255,0.9)" }]} numberOfLines={2}>
+                        {journey.description}
+                      </Text>
+                      {journey.location ? (
+                        <View style={styles.locationRow}>
+                          <Ionicons name="location-outline" size={14} color="rgba(255,255,255,0.7)" />
+                          <Text style={[styles.locationText, { color: "rgba(255,255,255,0.7)" }]}>
+                            {journey.location}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </BlurView>
+                  </View>
                 </View>
               </View>
             ))
@@ -220,79 +225,92 @@ const styles = StyleSheet.create({
     fontWeight: "300",
   },
   timelineContainer: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 0,
     position: "relative",
   },
   verticalLine: {
     position: "absolute",
-    left: SCREEN_WIDTH / 2 - 1,
+    left: 40,
     top: 0,
     bottom: 0,
     width: 2,
     borderRadius: 1,
   },
-  timelineCard: {
-    width: SCREEN_WIDTH / 2 - 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    overflow: "hidden",
-    marginBottom: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+  timelineRow: {
+    flexDirection: "row",
+    marginBottom: 40,
   },
-  cardLeft: {
-    alignSelf: "flex-start",
-    marginLeft: 8,
-  },
-  cardRight: {
-    alignSelf: "flex-end",
-    marginRight: 8,
+  timelineDotContainer: {
+    width: 82,
+    alignItems: "center",
+    paddingTop: 36,
   },
   timelineDot: {
-    position: "absolute",
-    top: 20,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 3,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 4,
     zIndex: 10,
   },
-  cardImage: {
-    width: "100%",
-    height: 120,
+  timelineCard: {
+    flex: 1,
+    height: 380,
+    marginRight: 24,
+    borderRadius: 36,
+    borderWidth: 1,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    elevation: 8,
   },
-  cardContent: {
-    padding: 14,
+  cardContentWrapper: {
+    position: "absolute",
+    bottom: 24,
+    left: 20,
+    right: 20,
+    zIndex: 10,
+  },
+  cardGlassBox: {
+    borderRadius: 28,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    overflow: "hidden",
   },
   cardDate: {
-    fontSize: 12,
-    fontWeight: "700",
-    marginBottom: 4,
-    letterSpacing: 0.5,
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    marginBottom: 8,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    marginBottom: 6,
-    letterSpacing: -0.3,
+    fontSize: 26,
+    fontWeight: "900",
+    letterSpacing: -0.5,
+    lineHeight: 32,
+    marginBottom: 8,
   },
   cardDescription: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 15,
+    lineHeight: 22,
     fontWeight: "400",
   },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
-    gap: 4,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.15)",
+    gap: 6,
   },
   locationText: {
-    fontSize: 12,
-    fontWeight: "500",
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
   emptyState: {
     paddingVertical: 60,

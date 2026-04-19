@@ -18,6 +18,8 @@ import { fetchStories } from "@/lib/api";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import AuroraBackground from "@/components/AuroraBackground";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -109,64 +111,51 @@ export default function StoriesScreen() {
           <View style={styles.grid}>
             {stories.length > 0 ? (
               stories.map((story, index) => (
-                <View
-                  key={story.id}
-                >
+                <View key={story.id}>
                   <Pressable
                     onPress={() => router.push(`/story/${story.id}` as any)}
                     style={({ pressed }) => [
                       styles.storyCard,
                       {
-                        backgroundColor: colors.card + "90",
-                        borderColor: colors.border + "40",
-                        opacity: pressed ? 0.9 : 1,
                         transform: [{ scale: pressed ? 0.98 : 1 }],
+                        opacity: pressed ? 0.95 : 1,
+                        borderColor: colors.border + "60",
                       },
                     ]}
                   >
                     {story.coverImage ? (
                       <Image
                         source={{ uri: story.coverImage }}
-                        style={styles.storyImage}
+                        style={StyleSheet.absoluteFillObject}
                         contentFit="cover"
                         transition={300}
                       />
                     ) : (
-                      <View
-                        style={[
-                          styles.storyImagePlaceholder,
-                          { backgroundColor: `${colors.blue}10` },
-                        ]}
-                      >
-                        <Ionicons name="book-outline" size={32} color={`${colors.blue}50`} />
-                      </View>
+                      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.blue + "20" }]} />
                     )}
 
-                    <View style={styles.storyContent}>
-                      <View style={styles.tagRow}>
-                        <View
-                          style={[styles.tag, { backgroundColor: `${colors.blue}20` }]}
-                        >
-                          <Text style={[styles.tagText, { color: colors.blue }]}>
-                            {story.tag}
-                          </Text>
-                        </View>
-                        <Text style={[styles.readingTime, { color: colors.mutedForeground }]}>
-                          {story.readingTime}
+                    <LinearGradient
+                      colors={["rgba(0,0,0,0.1)", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.85)"]}
+                      style={StyleSheet.absoluteFillObject}
+                    />
+
+                    <View style={styles.storyTopTags}>
+                      <BlurView intensity={70} tint="dark" style={styles.storyGlassBubble}>
+                        <Ionicons name="time-outline" size={14} color="#FFF" />
+                        <Text style={[styles.storyBubbleText, { color: "#FFF" }]}>{story.readingTime}</Text>
+                      </BlurView>
+                    </View>
+
+                    <View style={styles.storyContentWrapper}>
+                      <BlurView intensity={85} tint="dark" style={styles.storyGlassBox}>
+                        <Text style={[styles.storyTag, { color: colors.blue }]}>{story.tag}</Text>
+                        <Text style={[styles.storyTitle, { color: "#FFF" }]} numberOfLines={2}>
+                          {story.title}
                         </Text>
-                      </View>
-                      <Text
-                        style={[styles.storyTitle, { color: colors.foreground }]}
-                        numberOfLines={2}
-                      >
-                        {story.title}
-                      </Text>
-                      <Text
-                        style={[styles.storyDescription, { color: colors.mutedForeground }]}
-                        numberOfLines={2}
-                      >
-                        {story.description}
-                      </Text>
+                        <Text style={[styles.storyDescription, { color: "rgba(255,255,255,0.9)" }]} numberOfLines={2}>
+                          {story.description}
+                        </Text>
+                      </BlurView>
                     </View>
                   </Pressable>
                 </View>
@@ -230,60 +219,78 @@ const styles = StyleSheet.create({
     fontWeight: "300",
   },
   grid: {
-    paddingHorizontal: 20,
-    gap: 16,
+    paddingHorizontal: 24,
+    gap: 24,
   },
   storyCard: {
-    borderRadius: 20,
+    width: "100%",
+    height: 380,
+    borderRadius: 36,
     borderWidth: 1,
     overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    elevation: 8,
   },
-  storyImage: {
-    width: "100%",
-    height: 180,
+  storyTopTags: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    padding: 24,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
-  storyImagePlaceholder: {
-    width: "100%",
-    height: 180,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  storyContent: {
-    padding: 16,
-  },
-  tagRow: {
+  storyGlassBubble: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    gap: 8,
+    overflow: "hidden",
+  },
+  storyBubbleText: {
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  storyContentWrapper: {
+    position: "absolute",
+    bottom: 24,
+    left: 24,
+    right: 24,
+    zIndex: 10,
+  },
+  storyGlassBox: {
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    overflow: "hidden",
+  },
+  storyTag: {
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
     marginBottom: 8,
   },
-  tag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  tagText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  readingTime: {
-    fontSize: 12,
-    fontWeight: "500",
-  },
   storyTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 6,
-    letterSpacing: -0.3,
+    fontSize: 28,
+    fontWeight: "900",
+    letterSpacing: -0.5,
+    lineHeight: 34,
+    marginBottom: 10,
   },
   storyDescription: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 22,
     fontWeight: "400",
   },
   emptyState: {

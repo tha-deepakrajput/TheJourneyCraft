@@ -186,9 +186,16 @@ export default function Navbar() {
           {/* Right: Actions */}
           <div className="flex items-center space-x-1 md:space-x-3 z-10">
             {session ? (
-              <Link href="/dashboard" className="hidden md:block text-sm font-medium hover:text-foreground/80 transition-colors px-2">
-                Dashboard
-              </Link>
+              <>
+                <Link href="/my-account" className="hidden md:block text-sm font-medium hover:text-foreground/80 transition-colors px-2">
+                  My Account
+                </Link>
+                {(session.user as any)?.role === "Creator" && (
+                  <Link href="/dashboard" className="hidden md:block text-sm font-medium hover:text-foreground/80 transition-colors px-2">
+                    Dashboard
+                  </Link>
+                )}
+              </>
             ) : (
               <Link href="/login" className="hidden md:block text-sm font-medium hover:text-foreground/80 transition-colors px-2">
                 Sign In
@@ -284,13 +291,24 @@ export default function Navbar() {
                   Share Story
                 </Link>
                 {session ? (
-                  <Link 
-                    href="/dashboard" 
-                    onClick={() => setIsMenuOpen(false)} 
-                    className="block px-4 py-3 text-base font-medium hover:bg-black/5 dark:hover:bg-white/10 rounded-xl text-center transition-colors"
-                  >
-                    Dashboard
-                  </Link>
+                  <>
+                    <Link 
+                      href="/my-account" 
+                      onClick={() => setIsMenuOpen(false)} 
+                      className="block px-4 py-3 text-base font-medium hover:bg-black/5 dark:hover:bg-white/10 rounded-xl text-center transition-colors"
+                    >
+                      My Account
+                    </Link>
+                    {(session.user as any)?.role === "Creator" && (
+                      <Link 
+                        href="/dashboard" 
+                        onClick={() => setIsMenuOpen(false)} 
+                        className="block px-4 py-3 text-base font-medium hover:bg-black/5 dark:hover:bg-white/10 rounded-xl text-center transition-colors"
+                      >
+                        Dashboard
+                      </Link>
+                    )}
+                  </>
                 ) : (
                   <Link 
                     href="/login" 

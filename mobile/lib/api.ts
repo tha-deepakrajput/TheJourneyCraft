@@ -66,6 +66,8 @@ export async function login(email: string, password: string) {
     success: boolean;
     token: string;
     user: { id: string; name: string; email: string; role: string; image?: string | null };
+    error?: string;
+    requiresVerification?: boolean;
   }>("/api/auth/mobile-login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
@@ -76,6 +78,48 @@ export async function login(email: string, password: string) {
   }
 
   return data;
+}
+
+export async function signup(name: string, email: string, password: string) {
+  return apiFetch<{
+    success: boolean;
+    message: string;
+    requiresVerification: boolean;
+    error?: string;
+  }>("/api/auth/mobile-signup", {
+    method: "POST",
+    body: JSON.stringify({ name, email, password }),
+  });
+}
+
+export async function verifyEmail(email: string, code: string) {
+  const data = await apiFetch<{
+    success: boolean;
+    message: string;
+    token: string;
+    user: { id: string; name: string; email: string; role: string; image?: string | null };
+    error?: string;
+  }>("/api/auth/verify-email", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+
+  if (data.success && data.token) {
+    await setToken(data.token);
+  }
+
+  return data;
+}
+
+export async function resendCode(email: string) {
+  return apiFetch<{
+    success: boolean;
+    message: string;
+    error?: string;
+  }>("/api/auth/resend-code", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
 }
 
 export async function fetchJourneys() {
@@ -99,9 +143,10 @@ export async function submitStory(storyData: {
   category: string;
   images?: string[];
   video?: string;
-}) {
+}, authenticated?: boolean) {
   return apiFetch("/api/submissions", {
     method: "POST",
+    authenticated: authenticated || false,
     body: JSON.stringify({
       name: storyData.name,
       email: storyData.email,
@@ -143,4 +188,14 @@ export async function updateUserProfile(profileData: { name: string; image?: str
     authenticated: true,
     body: JSON.stringify(profileData),
   });
+}
+
+export async function fetchMySubmissions() {
+  const data = await apiFetch<{
+    success: boolean;
+    submissions: any[];
+  }>("/api/user/submissions", {
+    authenticated: true,
+  });
+  return data.submissions;
 }

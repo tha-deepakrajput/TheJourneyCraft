@@ -16,7 +16,12 @@ import {
   ArrowRight, 
   Sparkles, 
   Image as ImageIcon, 
-  BookOpen 
+  BookOpen,
+  MoreHorizontal,
+  Heart,
+  MessageCircle,
+  Send,
+  Bookmark
 } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -24,6 +29,7 @@ import AuroraBackground from "@/components/AuroraBackground";
 import { fetchJourneys, fetchStories } from "@/lib/api";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -153,50 +159,65 @@ export default function HomeScreen() {
               </View>
 
               {journeys.length > 0 ? (
-                <View style={styles.cardsGrid}>
+                <View style={styles.showcaseFeed}>
                   {journeys.map((journey, i) => {
-                    const styleOpts = cardStyles[i % cardStyles.length];
                     return (
-                      <View key={journey.id}>
+                      <Pressable 
+                        key={journey.id}
+                        onPress={() => router.push(`/journey/${journey.id}` as any)}
+                        style={({ pressed }) => [
+                          styles.showcaseCard, 
+                          {
+                            transform: [{ scale: pressed ? 0.98 : 1 }],
+                            opacity: pressed ? 0.95 : 1,
+                            borderColor: colors.border + "60",
+                          }
+                        ]}
+                      >
+                        {journey.image ? (
+                          <Image 
+                            source={{ uri: journey.image }} 
+                            style={StyleSheet.absoluteFillObject} 
+                            contentFit="cover"
+                          />
+                        ) : (
+                          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.primary + "20" }]} />
+                        )}
                         <LinearGradient
-                          colors={styleOpts.colors as [string, string]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={StyleSheet.flatten([styles.highlightCard, { borderColor: styleOpts.borderColor }])}
-                        >
-                          {journey.image && (
-                            <Image 
-                              source={{ uri: journey.image }} 
-                              style={StyleSheet.absoluteFillObject} 
-                              contentFit="cover"
-                            />
-                          )}
-                          <View style={StyleSheet.flatten([StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.4)" }])} />
-                          
-                          <View style={styles.highlightCardInner}>
-                            <View style={styles.highlightCardTop}>
-                              <View style={StyleSheet.flatten([styles.highlightIconBox, { backgroundColor: "rgba(0,0,0,0.3)", borderColor: "rgba(255,255,255,0.2)" }])}>
-                                <ImageIcon size={20} color="#fff" />
-                              </View>
-                              {journey.category && (
-                                <View style={StyleSheet.flatten([styles.highlightTag, { backgroundColor: styleOpts.tagBg, borderColor: "rgba(255,255,255,0.1)" }])}>
-                                  <Text style={[styles.highlightTagText, { color: styleOpts.tagColor }]}>{journey.category}</Text>
-                                </View>
-                              )}
+                          colors={["rgba(0,0,0,0.1)", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.9)"]}
+                          style={StyleSheet.absoluteFillObject}
+                        />
+
+                        {/* Top glass bubble */}
+                        <View style={styles.showcaseTopTags}>
+                          <BlurView intensity={70} tint="dark" style={styles.showcaseGlassBubble}>
+                            <Sparkles size={14} color={colors.primary} />
+                            <Text style={[styles.showcaseBubbleText, { color: "#FFF" }]}>{journey.category || "Highlight"}</Text>
+                          </BlurView>
+                        </View>
+
+                        {/* Floating Content Box */}
+                        <View style={styles.showcaseContentWrapper}>
+                          <BlurView intensity={85} tint="dark" style={styles.showcaseGlassBox}>
+                            <View style={styles.showcaseDateRow}>
+                              <Compass size={14} color="rgba(255,255,255,0.8)" />
+                              <Text style={[styles.showcaseDate, { color: "rgba(255,255,255,0.8)" }]}>{journey.date}</Text>
                             </View>
-                            
-                            <View>
-                              <Text style={styles.highlightDate}>{journey.date}</Text>
-                              <Text style={styles.highlightTitle} numberOfLines={2}>{journey.title}</Text>
-                              <Text style={styles.highlightDesc} numberOfLines={2}>{journey.description}</Text>
-                              <View style={styles.highlightAction}>
-                                <Text style={styles.highlightActionText}>View Details</Text>
-                                <ArrowRight size={14} color="rgba(255,255,255,0.9)" />
+                            <Text style={[styles.showcaseTitle, { color: "#FFF" }]} numberOfLines={2}>
+                              {journey.title}
+                            </Text>
+                            <Text style={[styles.showcaseDesc, { color: "rgba(255,255,255,0.9)" }]} numberOfLines={2}>
+                              {journey.description}
+                            </Text>
+                            <View style={styles.showcaseAction}>
+                              <Text style={[styles.showcaseActionText, { color: "#FFF" }]}>Explore Journey</Text>
+                              <View style={[styles.showcaseActionIconBtn, { backgroundColor: colors.primary }]}>
+                                <ArrowRight size={16} color="#FFF" />
                               </View>
                             </View>
-                          </View>
-                        </LinearGradient>
-                      </View>
+                          </BlurView>
+                        </View>
+                      </Pressable>
                     );
                   })}
                 </View>
@@ -240,48 +261,54 @@ export default function HomeScreen() {
               </View>
 
               {stories.length > 0 ? (
-                <View style={styles.cardsGrid}>
+                <View style={styles.showcaseFeed}>
                   {stories.map((story, i) => (
-                    <View key={story.id}>
-                      <Pressable 
-                        onPress={() => router.push(`/story/${story.id}` as any)}
-                        style={({ pressed }) => [
-                          styles.storyCard,
-                          {
-                            backgroundColor: colors.card,
-                            borderColor: colors.border + "50",
-                            opacity: pressed ? 0.9 : 1,
-                            transform: [{ scale: pressed ? 0.98 : 1 }]
-                          }
-                        ]}
-                      >
-                        {story.coverImage && (
-                          <Image 
-                            source={{ uri: story.coverImage }} 
-                            style={StyleSheet.absoluteFillObject} 
-                            contentFit="cover"
-                          />
-                        )}
-                        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.3)" }]} />
-                        <LinearGradient
-                          colors={["transparent", "rgba(0,0,0,0.8)"]}
-                          style={StyleSheet.absoluteFillObject}
+                    <Pressable 
+                      key={story.id}
+                      onPress={() => router.push(`/story/${story.id}` as any)}
+                      style={({ pressed }) => [
+                        styles.showcaseCardSmall,
+                        {
+                          transform: [{ scale: pressed ? 0.98 : 1 }],
+                          opacity: pressed ? 0.95 : 1,
+                          borderColor: colors.border + "60",
+                        }
+                      ]}
+                    >
+                      {story.coverImage ? (
+                        <Image 
+                          source={{ uri: story.coverImage }} 
+                          style={StyleSheet.absoluteFillObject} 
+                          contentFit="cover"
                         />
+                      ) : (
+                        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.primary + "20" }]} />
+                      )}
+                      
+                      <LinearGradient
+                        colors={["rgba(0,0,0,0.1)", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.85)"]}
+                        style={StyleSheet.absoluteFillObject}
+                      />
 
-                        <View style={styles.storyCardContent}>
-                          <View style={styles.storyTagsRow}>
-                            <View style={[styles.storyTag, { backgroundColor: `${colors.primary}40` }]}>
-                              <Text style={[styles.storyTagText, { color: "#fff" }]}>{story.tag}</Text>
-                            </View>
-                            <View style={[styles.storyTag, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
-                              <Text style={[styles.storyTagText, { color: "#ccc" }]}>{story.readingTime}</Text>
-                            </View>
-                          </View>
-                          <Text style={styles.storyTitle} numberOfLines={2}>{story.title}</Text>
-                          <Text style={styles.storyDesc} numberOfLines={2}>{story.description}</Text>
-                        </View>
-                      </Pressable>
-                    </View>
+                      <View style={styles.showcaseTopTags}>
+                        <BlurView intensity={70} tint="dark" style={styles.showcaseGlassBubble}>
+                          <BookOpen size={13} color="#FFF" />
+                          <Text style={[styles.showcaseBubbleText, { color: "#FFF" }]}>{story.readingTime}</Text>
+                        </BlurView>
+                      </View>
+
+                      <View style={styles.showcaseContentWrapper}>
+                        <BlurView intensity={85} tint="dark" style={styles.showcaseGlassBox}>
+                          <Text style={[styles.showcaseStoryTag, { color: colors.primary }]}>{story.tag || "Story"}</Text>
+                          <Text style={[styles.showcaseStoryTitle, { color: "#FFF" }]} numberOfLines={2}>
+                            {story.title}
+                          </Text>
+                          <Text style={[styles.showcaseStoryDesc, { color: "rgba(255,255,255,0.9)" }]} numberOfLines={2}>
+                            {story.description}
+                          </Text>
+                        </BlurView>
+                      </View>
+                    </Pressable>
                   ))}
                 </View>
               ) : (
@@ -417,73 +444,138 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: "300",
   },
-  cardsGrid: {
-    gap: 20,
+  showcaseFeed: {
+    gap: 24,
     marginBottom: 32,
   },
-  highlightCard: {
+  showcaseCard: {
     width: "100%",
-    aspectRatio: 4/5,
-    borderRadius: 24,
+    height: 480,
+    borderRadius: 40,
     borderWidth: 1,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 10,
   },
-  highlightCardInner: {
-    flex: 1,
-    padding: 24,
-    justifyContent: "space-between",
+  showcaseCardSmall: {
+    width: "100%",
+    height: 360,
+    borderRadius: 36,
+    borderWidth: 1,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    elevation: 8,
   },
-  highlightCardTop: {
+  showcaseTopTags: {
     flexDirection: "row",
     justifyContent: "space-between",
+    padding: 24,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  showcaseGlassBubble: {
+    flexDirection: "row",
     alignItems: "center",
-  },
-  highlightIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
     borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    gap: 8,
+    overflow: "hidden",
   },
-  highlightTag: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 100,
-    borderWidth: 1,
-  },
-  highlightTagText: {
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  highlightDate: {
-    color: "rgba(255,255,255,0.6)",
+  showcaseBubbleText: {
     fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 6,
-  },
-  highlightTitle: {
-    color: "#fff",
-    fontSize: 28,
     fontWeight: "800",
-    marginBottom: 8,
-    letterSpacing: -0.5,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
-  highlightDesc: {
-    color: "rgba(255,255,255,0.8)",
-    lineHeight: 20,
-    fontSize: 14,
-    marginBottom: 16,
+  showcaseContentWrapper: {
+    position: "absolute",
+    bottom: 24,
+    left: 24,
+    right: 24,
+    zIndex: 10,
   },
-  highlightAction: {
+  showcaseGlassBox: {
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    overflow: "hidden",
+  },
+  showcaseDateRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    marginBottom: 12,
   },
-  highlightActionText: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 14,
-    fontWeight: "600",
+  showcaseDate: {
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+  },
+  showcaseTitle: {
+    fontSize: 32,
+    fontWeight: "900",
+    letterSpacing: -1,
+    lineHeight: 38,
+    marginBottom: 12,
+  },
+  showcaseDesc: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: "400",
+  },
+  showcaseAction: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.15)",
+  },
+  showcaseActionText: {
+    fontSize: 15,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  showcaseActionIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  showcaseStoryTag: {
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
+  showcaseStoryTitle: {
+    fontSize: 26,
+    fontWeight: "900",
+    letterSpacing: -0.5,
+    lineHeight: 32,
+    marginBottom: 10,
+  },
+  showcaseStoryDesc: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "400",
   },
   viewAllBtn: {
     flexDirection: "row",
@@ -499,7 +591,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   storiesSection: {
-    paddingTop: 20,
+    paddingTop: 32,
   },
   storiesHeaderRow: {
     flexDirection: "row",
@@ -526,45 +618,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
-  },
-  storyCard: {
-    width: "100%",
-    height: 280,
-    borderRadius: 24,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  storyCardContent: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 24,
-  },
-  storyTagsRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 12,
-  },
-  storyTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
-  },
-  storyTagText: {
-    fontSize: 10,
-    fontWeight: "700",
-  },
-  storyTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "800",
-    marginBottom: 6,
-  },
-  storyDesc: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 13,
-    lineHeight: 18,
   },
   emptyContainer: {
     padding: 40,

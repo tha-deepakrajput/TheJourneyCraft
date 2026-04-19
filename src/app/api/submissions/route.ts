@@ -1,14 +1,27 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { submissions } from "@/db/schema";
+import { getAuthSession } from "@/lib/auth-util";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    
+
+    // Try to get authenticated user (optional — anonymous submissions still allowed)
+    let userId: string | undefined;
+    try {
+      const session = await getAuthSession(req);
+      if (session?.user) {
+        userId = (session.user as any).id;
+      }
+    } catch {
+      // No auth — anonymous submission
+    }
+
     const [newSubmission] = await db
       .insert(submissions)
       .values({
+        userId: userId || null,
         name: body.name,
         email: body.email,
         title: body.title,

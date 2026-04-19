@@ -24,6 +24,9 @@ export const users = pgTable("users", {
   image: text("image").default(""),
   role: userRoleEnum("role").default("Explorer"),
   password: text("password"),
+  verified: boolean("verified").default(false),
+  verificationCode: varchar("verification_code", { length: 6 }),
+  verificationCodeExpiry: timestamp("verification_code_expiry"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -66,6 +69,7 @@ export const messages = pgTable("messages", {
 // ─── Submissions ─────────────────────────────────────────
 export const submissions = pgTable("submissions", {
   id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull(),
   title: varchar("title", { length: 500 }).notNull(),

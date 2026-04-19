@@ -29,6 +29,10 @@ export const authOptions: NextAuthOptions = {
         if (!isMatch) {
           throw new Error("Invalid credentials");
         }
+        // Block unverified users (except the seeded admin/Creator)
+        if (user.verified === false && user.role !== "Creator") {
+          throw new Error("Please verify your email before signing in");
+        }
         return {
           id: user.id,
           name: user.name,

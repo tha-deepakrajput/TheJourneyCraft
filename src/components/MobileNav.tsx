@@ -2,26 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, BookOpen, PlusSquare, LayoutDashboard } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Home, Compass, BookOpen, PlusSquare, Grid3X3, LayoutDashboard, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const navItems = [
-  { name: "Home", icon: Home, path: "/" },
-  { name: "Timeline", icon: Compass, path: "/timeline" },
-  { name: "Share", icon: PlusSquare, path: "/submit-journey", isAction: true },
-  { name: "Stories", icon: BookOpen, path: "/stories" },
-  { name: "Me", icon: LayoutDashboard, path: "/dashboard" },
-];
-
 export default function MobileNav() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState(pathname);
 
   useEffect(() => {
     setActiveTab(pathname);
   }, [pathname]);
+
+  // Determine the last nav item based on auth state
+  const lastNavItem = session
+    ? { name: "Account", icon: User, path: "/my-account" }
+    : { name: "Me", icon: User, path: "/login" };
+
+  const navItems = [
+    { name: "Home", icon: Home, path: "/" },
+    { name: "Timeline", icon: Compass, path: "/timeline" },
+    { name: "Share", icon: PlusSquare, path: "/submit-journey", isAction: true },
+    { name: "Stories", icon: BookOpen, path: "/stories" },
+    lastNavItem,
+  ];
 
   if (pathname.startsWith("/dashboard/")) {
     // Optionally hide on dashboard subpages
@@ -55,15 +62,15 @@ export default function MobileNav() {
               
               <div className={cn(
                 "p-1.5 rounded-2xl transition-all duration-300",
-                item.isAction ? "bg-primary text-primary-foreground -translate-y-6 shadow-xl shadow-primary/30 border-4 border-background" : ""
+                (item as any).isAction ? "bg-primary text-primary-foreground -translate-y-6 shadow-xl shadow-primary/30 border-4 border-background" : ""
               )}>
                 <Icon className={cn(
                     "w-6 h-6 transition-transform duration-300",
-                    item.isAction ? "w-7 h-7" : isActive ? "scale-110" : ""
+                    (item as any).isAction ? "w-7 h-7" : isActive ? "scale-110" : ""
                 )} />
               </div>
 
-              {!item.isAction && (
+              {!(item as any).isAction && (
                 <span className="text-[10px] font-bold mt-1 uppercase tracking-tighter">
                   {item.name}
                 </span>

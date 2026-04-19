@@ -1,10 +1,12 @@
 "use client";
 
-import { UploadCloud, CheckCircle2, Send, PenLine, Sparkles, Image as ImageIcon, Video } from "lucide-react";
+import { CheckCircle2, Send, PenLine, Sparkles, Image as ImageIcon, Video } from "lucide-react";
 import * as motion from "framer-motion/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function SubmitJourneyPage() {
+  const { data: session } = useSession();
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -17,6 +19,16 @@ export default function SubmitJourneyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (session?.user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: session.user?.name || prev.name,
+        email: session.user?.email || prev.email,
+      }));
+    }
+  }, [session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,8 +69,8 @@ export default function SubmitJourneyPage() {
       });
       
       setTimeout(() => setIsSubmitted(false), 3000);
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsSubmitting(false);
     }
@@ -138,9 +150,10 @@ export default function SubmitJourneyPage() {
                   <input 
                     type="text" 
                     required
+                    readOnly={!!session?.user}
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full h-14 px-5 rounded-2xl bg-background/50 border border-border/50 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-foreground placeholder:text-muted-foreground/50 shadow-inner" 
+                    className={`w-full h-14 px-5 rounded-2xl bg-background/50 border border-border/50 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-foreground placeholder:text-muted-foreground/50 shadow-inner ${session?.user ? "opacity-70 cursor-not-allowed" : ""}`} 
                     placeholder="Jane Doe" 
                   />
                 </div>
@@ -151,9 +164,10 @@ export default function SubmitJourneyPage() {
                   <input 
                     type="email" 
                     required
+                    readOnly={!!session?.user}
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full h-14 px-5 rounded-2xl bg-background/50 border border-border/50 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-foreground placeholder:text-muted-foreground/50 shadow-inner" 
+                    className={`w-full h-14 px-5 rounded-2xl bg-background/50 border border-border/50 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all text-foreground placeholder:text-muted-foreground/50 shadow-inner ${session?.user ? "opacity-70 cursor-not-allowed" : ""}`} 
                     placeholder="jane@example.com" 
                   />
                 </div>
